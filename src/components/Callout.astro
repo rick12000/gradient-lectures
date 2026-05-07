@@ -1,0 +1,54 @@
+---
+interface Props {
+  type?: 'note' | 'tip' | 'example' | 'warning';
+  title?: string;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
+}
+
+const {
+  type = 'note',
+  title,
+  collapsible = false,
+  defaultOpen = false,
+} = Astro.props;
+
+const icons: Record<string, string> = {
+  note: '📘',
+  tip: '💡',
+  example: '📝',
+  warning: '⚠️',
+};
+
+const defaultTitles: Record<string, string> = {
+  note: 'Note',
+  tip: 'Tip',
+  example: 'Example',
+  warning: 'Warning',
+};
+
+const displayTitle = title ?? defaultTitles[type];
+const icon = icons[type];
+---
+
+{collapsible ? (
+  <details class={`callout callout--${type}`} open={defaultOpen}>
+    <summary>
+      <span class="callout-icon" aria-hidden="true">{icon}</span>
+      <span class="callout-title">{displayTitle}</span>
+    </summary>
+    <div class="callout-body">
+      <slot />
+    </div>
+  </details>
+) : (
+  <div class={`callout callout--${type} callout--static`}>
+    <div class={`callout-header-static`}>
+      <span class="callout-icon" aria-hidden="true">{icon}</span>
+      <span class="callout-title">{displayTitle}</span>
+    </div>
+    <div class="callout-body">
+      <slot />
+    </div>
+  </div>
+)}

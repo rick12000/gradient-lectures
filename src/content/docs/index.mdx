@@ -1,0 +1,43 @@
+---
+title: Gradient Lectures
+description: A free, open, and deeply interconnected repository of machine learning and mathematical knowledge.
+template: splash
+draft: false
+---
+
+import fullLogo from '../../../src/assets/full_logo.png';
+
+<style>{`
+  /* Hide the default Starlight page title and divider on the splash page */
+  #_top { display: none !important; }
+`}</style>
+
+<div class="hero-container">
+  <img src={fullLogo.src} alt="Gradient Lectures" class="hero-title" style={{ maxWidth: '450px', width: '100%', marginBottom: '1.25rem' }} />
+  <p class="hero-subtitle">A free, open repository of machine learning and mathematical knowledge — written with depth, designed for clarity.</p>
+</div>
+
+<div class="hero-section-label">Learning Tracks</div>
+<p class="hero-tracks-desc">Explore our curated sequences of notes. Each track is designed to build intuition from first principles through rigorous mathematics and interactive exploration.</p>
+
+<div class="track-cards">
+  <a class="track-card" href="/gradient-lectures/tracks/experimentation/">
+    <div class="track-card__number">Track 01</div>
+    <div class="track-card__title">Experimentation</div>
+    <div class="track-card__desc">The mathematics and statistics of A/B testing — power analysis, causal estimation, sequential testing, multiple comparisons, and network effects. 8 frequentist notes with interactive visualizations.</div>
+  </a>
+  <a class="track-card" href="/gradient-lectures/tracks/bayesian-statistics/">
+    <div class="track-card__number">Track 02</div>
+    <div class="track-card__title">Bayesian Statistics</div>
+    <div class="track-card__desc">Bayesian inference from first principles — conjugate priors, posterior updates, credible intervals, and Bayesian regression. 5 notes with interactive parameter explorers.</div>
+  </a>
+  <div class="track-card track-card--faded">
+    <div class="track-card__number">Track 03</div>
+    <div class="track-card__title">Causal Inference</div>
+    <div class="track-card__desc">Understanding cause and effect beyond randomized experiments. Propensity scores, instrumental variables, and difference-in-differences. Coming soon.</div>
+  </div>
+</div>
+
+<div class="view-all-tracks">
+  <a href="/gradient-lectures/learning-tracks/">To view the full list of available learning tracks, go to the learning track page →</a>
+</div>

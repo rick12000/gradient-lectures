@@ -1,0 +1,179 @@
+---
+// NormalNormalExplorer — interactive Normal-Normal posterior update
+---
+
+<div class="interactive-chart" id="normal-explorer">
+  <div class="interactive-chart__header">Interactive — Normal-Normal Explorer</div>
+  <div class="interactive-chart__canvas">
+    <svg id="normal-svg" width="100%" viewBox="0 0 700 320" preserveAspectRatio="xMidYMid meet" aria-label="Normal-Normal posterior update plot"></svg>
+    <div id="normal-stats" class="chart-stats-row"></div>
+  </div>
+  <div class="interactive-chart__controls">
+    <div class="chart-control">
+      <label for="prior-mean">Prior Mean μ₀ <span class="control-value" id="pm-val">0.0</span></label>
+      <input type="range" id="prior-mean" min="-5" max="5" step="0.5" value="0" />
+    </div>
+    <div class="chart-control">
+      <label for="prior-std">Prior Std σ₀ <span class="control-value" id="ps-val">2.00</span></label>
+      <input type="range" id="prior-std" min="0.5" max="5" step="0.25" value="2.0" />
+    </div>
+    <div class="chart-control">
+      <label for="data-mean">Sample Mean ȳ <span class="control-value" id="dm-val">3.9</span></label>
+      <input type="range" id="data-mean" min="-5" max="10" step="0.1" value="3.9" />
+    </div>
+    <div class="chart-control">
+      <label for="data-n">Sample Size n <span class="control-value" id="dn-val">5</span></label>
+      <input type="range" id="data-n" min="1" max="50" step="1" value="5" />
+    </div>
+    <div class="chart-control">
+      <label for="data-sigma">Data Std σ <span class="control-value" id="ds-val">1.00</span></label>
+      <input type="range" id="data-sigma" min="0.5" max="5" step="0.25" value="1.0" />
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  "use strict";
+
+  function normalPDF(x, mu, sigma) {
+    const z = (x - mu) / sigma;
+    return Math.exp(-0.5 * z * z) / (sigma * Math.sqrt(2 * Math.PI));
+  }
+
+  function linspace(a, b, n) {
+    return Array.from({ length: n }, (_, i) => a + (b - a) * i / (n - 1));
+  }
+
+  const svg = document.getElementById('normal-svg');
+  const statsDiv = document.getElementById('normal-stats');
+  const margin = { top: 20, right: 20, bottom: 40, left: 44 };
+  const W = 700, H = 320;
+  const iW = W - margin.left - margin.right;
+  const iH = H - margin.top - margin.bottom;
+  const N_POINTS = 400;
+
+  function getParams() {
+    const mu0 = parseFloat(document.getElementById('prior-mean').value);
+    const sigma0 = parseFloat(document.getElementById('prior-std').value);
+    const ybar = parseFloat(document.getElementById('data-mean').value);
+    const n = parseInt(document.getElementById('data-n').value);
+    const sigma = parseFloat(document.getElementById('data-sigma').value);
+
+    const tau0 = 1 / (sigma0 * sigma0);
+    const tauData = 1 / (sigma * sigma);
+    const tauN = tau0 + n * tauData;
+    const sigmaN = Math.sqrt(1 / tauN);
+    const muN = (tau0 * mu0 + n * tauData * ybar) / tauN;
+
+    return { mu0, sigma0, ybar, n, sigma, muN, sigmaN, tau0, tauN };
+  }
+
+  function render() {
+    const { mu0, sigma0, ybar, n, sigma, muN, sigmaN, tau0, tauN } = getParams();
+    const sigmaLike = sigma / Math.sqrt(n);
+
+    const allMeans = [mu0, ybar, muN];
+    const allStds = [sigma0, sigmaLike, sigmaN];
+    const xMin = Math.min(...allMeans.map((m, i) => m - 3.5 * allStds[i]));
+    const xMax = Math.max(...allMeans.map((m, i) => m + 3.5 * allStds[i]));
+    const xs = linspace(xMin, xMax, N_POINTS);
+
+    const priorY = xs.map(x => normalPDF(x, mu0, sigma0));
+    const likeY = xs.map(x => normalPDF(x, ybar, sigmaLike));
+    const postY = xs.map(x => normalPDF(x, muN, sigmaN));
+
+    const yMax = Math.max(...priorY, ...likeY, ...postY) * 1.12;
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#a1a1aa' : '#71717a';
+    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+    const axisColor = isDark ? '#262626' : '#e4e4e7';
+    const postColor = isDark ? '#818cf8' : '#6366f1';
+    const priorColor = isDark ? '#64748b' : '#94a3b8';
+
+    function xScale(v) { return margin.left + (v - xMin) / (xMax - xMin) * iW; }
+    function yScale(v) { return margin.top + iH - (v / yMax) * iH; }
+
+    function makePath(ys, color, sw, fillOpacity) {
+      const pts = xs.map((x, i) => `${xScale(x).toFixed(2)},${yScale(ys[i]).toFixed(2)}`).join(' L ');
+      const bottom = yScale(0).toFixed(2);
+      const first = xScale(xs[0]).toFixed(2);
+      const last = xScale(xs[xs.length - 1]).toFixed(2);
+      return `<path d="M ${first},${bottom} L ${pts} L ${last},${bottom} Z" fill="${color}" fill-opacity="${fillOpacity}" stroke="none"/>` +
+             `<path d="M ${pts}" stroke="${color}" stroke-width="${sw}" fill="none" vector-effect="non-scaling-stroke"/>`;
+    }
+
+    function makeCI(mu, sigma) {
+      const lo = mu - 1.96 * sigma, hi = mu + 1.96 * sigma;
+      const ciXs = xs.filter(x => x >= lo && x <= hi);
+      if (ciXs.length < 2) return '';
+      const pts = ciXs.map((x) => `${xScale(x).toFixed(2)},${yScale(normalPDF(x, mu, sigma)).toFixed(2)}`).join(' L ');
+      const bottom = yScale(0).toFixed(2);
+      return `<path d="M ${xScale(ciXs[0]).toFixed(2)},${bottom} L ${pts} L ${xScale(ciXs[ciXs.length - 1]).toFixed(2)},${bottom} Z" fill="${postColor}" fill-opacity="0.18" stroke="none"/>`;
+    }
+
+    const xAxis = `<line x1="${margin.left}" y1="${margin.top + iH}" x2="${margin.left + iW}" y2="${margin.top + iH}" stroke="${axisColor}" stroke-width="1.5"/>`;
+    const yAxis = `<line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + iH}" stroke="${axisColor}" stroke-width="1.5"/>`;
+
+    const xTicks = linspace(xMin, xMax, 6);
+    const xTicksSVG = xTicks.map(v =>
+      `<line x1="${xScale(v).toFixed(1)}" y1="${(margin.top + iH).toFixed(1)}" x2="${xScale(v).toFixed(1)}" y2="${(margin.top + iH + 5).toFixed(1)}" stroke="${axisColor}"/>` +
+      `<text x="${xScale(v).toFixed(1)}" y="${(margin.top + iH + 18).toFixed(1)}" text-anchor="middle" font-size="11" fill="${textColor}">${v.toFixed(1)}</text>` +
+      `<line x1="${xScale(v).toFixed(1)}" y1="${margin.top}" x2="${xScale(v).toFixed(1)}" y2="${(margin.top + iH).toFixed(1)}" stroke="${gridColor}" stroke-dasharray="3,3"/>`
+    ).join('');
+
+    const yLabel = `<text x="${(margin.left - 36).toFixed(1)}" y="${(margin.top + iH / 2).toFixed(1)}" text-anchor="middle" transform="rotate(-90,${(margin.left - 36).toFixed(1)},${(margin.top + iH / 2).toFixed(1)})" font-size="11" fill="${textColor}">Density</text>`;
+    const xLabel = `<text x="${(margin.left + iW / 2).toFixed(1)}" y="${(H - 4).toFixed(1)}" text-anchor="middle" font-size="11" fill="${textColor}">μ</text>`;
+
+    function vline(x, color) {
+      return `<line x1="${xScale(x).toFixed(1)}" y1="${margin.top}" x2="${xScale(x).toFixed(1)}" y2="${(margin.top + iH).toFixed(1)}" stroke="${color}" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>`;
+    }
+
+    const ci = makeCI(muN, sigmaN);
+    const priorPath = makePath(priorY, priorColor, 1.5, 0.07);
+    const likePath = makePath(likeY, '#f59e0b', 1.5, 0.07);
+    const postPath = makePath(postY, postColor, 2.5, 0.13);
+    const vlines = vline(mu0, priorColor) + vline(ybar, '#f59e0b') + vline(muN, postColor);
+
+    const legend = [
+      { color: priorColor, label: `Prior N(${mu0.toFixed(1)}, ${sigma0.toFixed(2)}²)` },
+      { color: '#f59e0b', label: `Likelihood N(${ybar.toFixed(1)}, ${sigmaLike.toFixed(2)}²)` },
+      { color: postColor, label: `Posterior N(${muN.toFixed(3)}, ${sigmaN.toFixed(3)}²)` },
+    ].map((item, i) =>
+      `<rect x="${margin.left + iW - 230}" y="${margin.top + 6 + i * 18}" width="11" height="11" rx="2" fill="${item.color}" fill-opacity="0.8"/>` +
+      `<text x="${margin.left + iW - 214}" y="${margin.top + 16 + i * 18}" font-size="10.5" fill="${textColor}">${item.label}</text>`
+    ).join('');
+
+    svg.innerHTML = xAxis + yAxis + xTicksSVG + yLabel + xLabel + ci + priorPath + likePath + postPath + vlines + legend;
+
+    statsDiv.innerHTML = [
+      { label: 'Posterior Mean μₙ', value: muN.toFixed(4) },
+      { label: 'Posterior Std σₙ', value: sigmaN.toFixed(4) },
+      { label: '95% Credible Interval', value: `[${(muN - 1.96 * sigmaN).toFixed(3)}, ${(muN + 1.96 * sigmaN).toFixed(3)}]` },
+      { label: 'Prior Precision τ₀', value: tau0.toFixed(3) },
+      { label: 'Posterior Precision τₙ', value: tauN.toFixed(3) },
+    ].map(s =>
+      `<div class="chart-stat"><span class="chart-stat__label">${s.label}</span><span class="chart-stat__value">${s.value}</span></div>`
+    ).join('');
+  }
+
+  function bindSlider(id, displayId, decimals = 1) {
+    const el = document.getElementById(id);
+    const disp = document.getElementById(displayId);
+    el.addEventListener('input', () => {
+      disp.textContent = parseFloat(el.value).toFixed(decimals);
+      render();
+    });
+  }
+
+  bindSlider('prior-mean', 'pm-val', 1);
+  bindSlider('prior-std', 'ps-val', 2);
+  bindSlider('data-mean', 'dm-val', 1);
+  bindSlider('data-n', 'dn-val', 0);
+  bindSlider('data-sigma', 'ds-val', 2);
+
+  new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  render();
+})();
+</script>

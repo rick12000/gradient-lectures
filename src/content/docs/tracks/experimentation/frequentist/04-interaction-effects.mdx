@@ -1,0 +1,70 @@
+---
+title: Interaction Effects
+description: Detecting and handling interference between simultaneous experiments. Two-way ANOVA, logistic regression, and the Breslow-Day test.
+---
+
+import Callout from '../../../../../components/Callout.astro';
+
+While [Spillover and Network Effects](/gradient-lectures/tracks/experimentation/frequentist/03-spillover-network-effects/) deal with interference between *users*, **Interaction Effects** deal with interference between *experiments*.
+
+In any mature tech company, dozens of independent product teams run A/B tests simultaneously on the same user base. We typically rely on the **Orthogonality Assumption**: if User 123 is randomly assigned to Team A's test and Team B's test, the effects of the two treatments are completely independent and strictly additive.
+
+When this assumption fails, we have an Interaction Effect.
+
+## How Interaction Effects Occur
+
+<Callout type="example" title="Recommendation model × UI carousel" collapsible defaultOpen={false}>
+
+**Scenario:** Team A (Backend) deploys a precise Recommendation Model that surfaces obscure, niche products. Team B (Frontend) deploys a new UI carousel designed to highlight high-resolution images of mainstream products.
+
+**The interaction:** Team A's model works well with the old UI. Team B's UI works well with the old model. But when a user gets *both* treatments concurrently, the new UI attempts to showcase obscure products that lack high-resolution images. The page looks broken. Conversion crashes.
+
+**The result:** Both teams see terrible metrics on their individual dashboards and incorrectly conclude their own feature failed, entirely missing that it was the *combination* causing the drop.
+
+</Callout>
+
+## Detecting Interaction Effects
+
+### Continuous Metrics
+
+To mathematically detect an interaction on a continuous metric (e.g., Revenue), fit a **Two-Way ANOVA** multiple linear regression:
+
+
+$$
+Y = \beta_0 + \beta_1 A + \beta_2 B + \beta_3 (A \times B) + \epsilon
+$$
+
+
+
+- $A$ and $B$ are binary indicators representing Treatment A and Treatment B.
+- The coefficient **$\beta_3$ specifically isolates the interaction** — it acts as a Difference-in-Differences estimator within the test itself.
+- If the p-value for $\beta_3$ is statistically significant, we have mathematical proof that the features cannot be evaluated on their independent main effects alone.
+
+<figure>
+  <img src="/gradient-lectures/assets/images/cursor-generated-1777121596-ab-interaction-anova.png" alt="ANOVA interaction plot showing parallel vs non-parallel lines" />
+  <figcaption>Parallel lines indicate no interaction (effects are additive). Non-parallel or crossing lines indicate an interaction effect — the benefit of Feature A depends on the state of Feature B.</figcaption>
+</figure>
+
+Visually, an interaction manifests as **non-parallel lines**. If the lines cross, the interaction is so severe that it reverses the direction of the main effect depending on the other feature's presence.
+
+### Categorical and Binary Metrics
+
+For binary metrics (e.g., Conversion Rate), linear ANOVA violates probability bounds. Use instead:
+
+- **Logistic Regression:** Same equation as above, wrapped in a logit link function $\ln(p/(1-p)) = \beta_0 + \beta_1 A + \beta_2 B + \beta_3(A \times B)$.
+- **Chi-Square Test of Independence:** Applied across treatment strata.
+- **Breslow-Day Test:** A specific test for homogeneity of odds ratios across $2 \times 2$ treatment stratifications. A significant result means the odds ratios differ across strata — an interaction is present.
+
+## Mitigation Strategies
+
+Not all areas of a product are equally susceptible to interactions. Changing a footer color will rarely interact with a checkout flow redesign.
+
+Platforms typically address this through **Gated Zones**:
+
+1. Historical analyses of Factorial Tests and ANOVA results identify which UI elements or backend systems frequently produce significant $\beta_3$ interaction terms.
+2. Based on this historical evidence, the platform establishes "Gated Zones" — high-risk areas where concurrent tests are prohibited.
+3. If Team A and Team B both try to touch a gated zone (e.g., the primary "Add to Cart" surface), the platform physically blocks them from running overlapping experiments.
+
+---
+
+**Next:** [Multiple Testing](/gradient-lectures/tracks/experimentation/frequentist/05-multiple-testing/) — how evaluating multiple hypotheses simultaneously inflates false positive rates.

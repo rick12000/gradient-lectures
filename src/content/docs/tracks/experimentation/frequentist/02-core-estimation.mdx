@@ -1,0 +1,145 @@
+---
+title: Core Estimation Layer
+description: The difference-in-means estimator, its variance, the CLT, and estimation across binary, continuous, and count variable types.
+---
+
+import Callout from '../../../../../components/Callout.astro';
+
+Once an experiment is launched, we collect data for both Treatment and Control groups. The **estimation layer** answers the core problem: *what is the true causal effect of the treatment on our target metric?*
+
+## The Core Estimation Problem
+
+In an ideal world, we would measure the exact same user in both states simultaneously and calculate the difference. Because this is impossible — a user can only be in one state at a time — we face the fundamental problem of causal inference.
+
+We overcome this by relying on **randomized assignment** to create two statistically identical groups, then estimating the **Average Treatment Effect (ATE)** across populations.
+
+## The Difference-in-Means Estimator
+
+The most common ATE estimator is the Difference-in-Means $\hat{\Delta}$:
+
+
+$$
+\hat{\Delta} = \bar{X}_T - \bar{X}_C
+$$
+
+
+
+### 1. Expected Value (Unbiasedness)
+
+By the linearity of expectation:
+
+
+$$
+\mathbb{E}[\hat{\Delta}] = \mathbb{E}[\bar{X}_T] - \mathbb{E}[\bar{X}_C] = \mu_T - \mu_C
+$$
+
+
+
+Because $\mathbb{E}[\hat{\Delta}]$ equals the true ATE, the Difference-in-Means is an **unbiased estimator**.
+
+### 2. Variance of the Estimator
+
+
+$$
+\text{Var}(\hat{\Delta}) = \text{Var}(\bar{X}_T - \bar{X}_C) = \text{Var}(\bar{X}_T) + \text{Var}(\bar{X}_C) - 2\,\text{Cov}(\bar{X}_T, \bar{X}_C)
+$$
+
+
+
+Because users are randomly assigned, Treatment and Control are independent, so $\text{Cov} = 0$.
+
+Expanding the variance of each sample mean (i.i.d. observations):
+
+
+$$
+\text{Var}(\bar{X}_T) = \frac{\sigma_T^2}{n_T}
+$$
+
+
+
+This gives the fundamental variance formula for A/B testing:
+
+
+$$
+\boxed{\text{Var}(\hat{\Delta}) = \frac{\sigma_T^2}{n_T} + \frac{\sigma_C^2}{n_C}}
+$$
+
+
+
+## The Central Limit Theorem
+
+Knowing the mean and variance of $\hat{\Delta}$ is not enough to run hypothesis tests — we also need its probability distribution.
+
+User-level data is rarely normal. Revenue is heavily right-skewed; clicks are binary. However, the **Central Limit Theorem (CLT)** states that the mean of a large number of independent random variables approaches a Normal distribution, regardless of the underlying distribution.
+
+Because $\hat{\Delta}$ is a linear combination of two sample means, as $n_T, n_C$ grow large:
+
+
+$$
+\hat{\Delta} \;\xrightarrow{d}\; \mathcal{N}\!\left(\mu_T - \mu_C,\;\; \frac{\sigma_T^2}{n_T} + \frac{\sigma_C^2}{n_C}\right)
+$$
+
+
+
+This asymptotic normality is the engine of the estimation layer. It allows us to compute p-values and confidence intervals using standard normal distributions.
+
+## Estimation Across Variable Types
+
+The way we estimate the variance $\sigma^2$ depends on the type of metric being measured.
+
+### Binary Variables (Proportions)
+
+*Examples: Conversion Rate, Click-Through Rate, Retention Rate.*
+
+Binary metrics follow a Bernoulli distribution. The variance is deterministically linked to the mean:
+
+
+$$
+s^2 = \hat{p}(1-\hat{p})
+$$
+
+
+
+
+$$
+\text{Var}(\hat{\Delta}) \approx \frac{\hat{p}_T(1-\hat{p}_T)}{n_T} + \frac{\hat{p}_C(1-\hat{p}_C)}{n_C}
+$$
+
+
+
+### Continuous Variables
+
+*Examples: Revenue per User, Time Spent, Pageviews.*
+
+Continuous metrics require computing the sample variance directly from each observation:
+
+
+$$
+s^2 = \frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X})^2
+$$
+
+
+
+Because this formula squares deviations, continuous metrics are highly susceptible to **extreme outliers** which can artificially inflate variance and destroy test sensitivity.
+
+### Count Variables
+
+*Examples: Number of orders per user, sessions.*
+
+Count metrics are often theoretically Poisson (where variance equals mean), but in practice almost always exhibit **overdispersion** (variance much larger than the mean). Treat them like continuous variables and estimate variance from the data.
+
+## Assumptions and Failure Modes
+
+The above workflow is robust, but breaks down under these common failure modes:
+
+| Failure Mode | Description |
+|---|---|
+| [Multiple Testing](/gradient-lectures/tracks/experimentation/frequentist/05-multiple-testing/) | Evaluating multiple hypotheses simultaneously inflates the false positive rate |
+| [Repeated Looks](/gradient-lectures/tracks/experimentation/frequentist/06-repeated-looks-peeking/) | Checking and stopping early destroys statistical guarantees |
+| [Normality Violations](/gradient-lectures/tracks/experimentation/frequentist/07-normality-resampling/) | Extreme skew or non-mean metrics make standard tests unreliable |
+| [Interaction Effects](/gradient-lectures/tracks/experimentation/frequentist/04-interaction-effects/) | Simultaneous experiments can contaminate each other |
+| [Spillover](/gradient-lectures/tracks/experimentation/frequentist/03-spillover-network-effects/) | Treatment effects bleeding into the control group violate SUTVA |
+
+---
+
+**Next:** [Spillover & Network Effects](/gradient-lectures/tracks/experimentation/frequentist/03-spillover-network-effects/) — when treatment effects bleed between users.

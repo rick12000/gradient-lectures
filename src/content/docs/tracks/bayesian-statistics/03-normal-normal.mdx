@@ -1,0 +1,223 @@
+---
+title: Normal-Normal Conjugate Prior
+description: Bayesian estimation of a Gaussian mean with known variance. Derives precision-weighted posteriors, shrinkage, and credible intervals — with an interactive posterior explorer.
+---
+
+import Callout from '../../../../components/Callout.astro';
+import NormalNormalExplorer from '../../../../components/NormalNormalExplorer.astro';
+
+Following the same principles as the [Beta-Bernoulli model](/gradient-lectures/tracks/bayesian-statistics/02-beta-bernoulli/), we now apply Bayesian updating to continuous data.
+
+## The Problem
+
+Consider measuring the height of adult men in a specific city. We want to estimate $\mu$, the true average height.
+
+A frequentist: measure $n$ men, compute $\bar{y}$, state $\mu = \bar{y}$.
+
+A Bayesian: incorporate prior knowledge — national averages, demographics, historical data — before even measuring the first person.
+
+## The Bayesian Framework
+
+We assume the data is normally distributed with a **known variance** $\sigma^2$:
+
+
+$$
+P(\mu|D) = \frac{P(D|\mu)P(\mu)}{P(D)}
+$$
+
+
+
+### The Likelihood: $P(D|\mu)$
+
+For $n$ independent observations $\{y_1, \dots, y_n\}$ from a Normal distribution:
+
+
+$$
+P(D|\mu) = \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left( -\frac{(y_i - \mu)^2}{2\sigma^2} \right)
+$$
+
+
+
+### The Prior: $P(\mu)$
+
+We choose a **Normal prior** — it is defined on $(-\infty, \infty)$ like $\mu$ itself, and it is the conjugate prior for the Gaussian likelihood. We parameterize it with a prior mean $\mu_0$ and prior variance $\sigma_0^2$:
+
+
+$$
+P(\mu) = \mathcal{N}(\mu_0, \sigma_0^2)
+$$
+
+
+
+### Precision
+
+When working with normal distributions in Bayesian statistics, **precision** (the inverse of variance) is often more natural:
+
+
+$$
+\tau = \frac{1}{\sigma^2}, \qquad \tau_0 = \frac{1}{\sigma_0^2}
+$$
+
+
+
+High precision means low variance — high certainty. The precision language turns the posterior update into a clean additive formula.
+
+### The Posterior: $P(\mu|D)$
+
+<Callout type="note" title="Derivation: Normal-Normal Posterior" collapsible defaultOpen={false}>
+
+**Step 1 — Proportionality**
+
+We work with the kernel (dropping multiplicative constants that don't depend on $\mu$):
+
+
+$$
+P(\mu \mid D) \propto \exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^n(y_i-\mu)^2\right)\exp\left(-\frac{(\mu-\mu_0)^2}{2\sigma_0^2}\right)
+$$
+
+
+
+**Step 2 — Combine Exponents**
+
+
+$$
+P(\mu \mid D) \propto \exp\left(-\frac{1}{2}\left[\frac{\sum(y_i-\mu)^2}{\sigma^2} + \frac{(\mu-\mu_0)^2}{\sigma_0^2}\right]\right)
+$$
+
+
+
+**Step 3 — Expand and Collect by Powers of $\mu$**
+
+After expanding the quadratics and dropping constants (terms without $\mu$):
+
+- $\mu^2$ coefficient: $\dfrac{n}{\sigma^2} + \dfrac{1}{\sigma_0^2} = n\tau + \tau_0$
+- $\mu$ coefficient (linear term): $-2\left(\dfrac{\sum y_i}{\sigma^2} + \dfrac{\mu_0}{\sigma_0^2}\right) = -2(n\tau\bar{y} + \tau_0\mu_0)$
+
+**Step 4 — Match to a Normal Kernel**
+
+A normal density $\mathcal{N}(\mu_n, \sigma_n^2)$ has the kernel $\exp\!\left(-\frac{1}{2\sigma_n^2}(\mu-\mu_n)^2\right)$, which expands to $\exp\!\left(-\frac{1}{2}\left[\mu^2\cdot\frac{1}{\sigma_n^2} - 2\mu\cdot\frac{\mu_n}{\sigma_n^2}\right]\right)$.
+
+Matching coefficients:
+
+
+$$
+\frac{1}{\sigma_n^2} = \tau_n = \tau_0 + n\tau
+$$
+
+
+
+
+$$
+\frac{\mu_n}{\sigma_n^2} = \tau_0\mu_0 + n\tau\bar{y} \implies \mu_n = \frac{\tau_0\mu_0 + n\tau\bar{y}}{\tau_n}
+$$
+
+
+
+</Callout>
+
+The posterior is Normal with updated precision and mean:
+
+
+$$
+\boxed{P(\mu \mid D) = \mathcal{N}(\mu_n,\; \sigma_n^2)}
+$$
+
+
+
+**Posterior precision** (precisions add):
+
+
+$$
+\tau_n = \tau_0 + n\tau
+$$
+
+
+
+**Posterior mean** (precision-weighted average):
+
+
+$$
+\mu_n = \frac{\tau_0\,\mu_0 + n\tau\,\bar{y}}{\tau_n}
+$$
+
+
+
+When the prior and posterior belong to the same family, the prior is called a **conjugate prior** for the likelihood.
+
+## Interpreting the Posterior
+
+The precision update rule $\tau_n = \tau_0 + n\tau$ has an elegant interpretation:
+
+> Posterior precision = prior precision + data precision.
+
+Because precisions add, the posterior is **always more certain** than either the prior or the data alone.
+
+The posterior mean is a **precision-weighted average** of the prior mean and the sample mean. When data precision dominates ($n\tau \gg \tau_0$), the posterior mean converges to $\bar{y}$. When the prior is strong, the posterior mean is pulled toward $\mu_0$ — this is called **shrinkage**.
+
+## Point Estimates and Intervals
+
+The posterior mean:
+
+
+$$
+\text{Mean} = \mu_n = \frac{\tau_0\,\mu_0 + n\tau\,\bar{y}}{\tau_0 + n\tau}
+$$
+
+
+
+For credible intervals, read percentiles directly from $\mathcal{N}(\mu_n, \sigma_n^2)$. The 95% credible interval is:
+
+
+$$
+\mu_n \pm 1.96\,\sigma_n
+$$
+
+
+
+## Worked Example
+
+Assume the true mean is around 0. We set a weakly informative prior: $\mu_0 = 0$, $\sigma_0 = 2.0$. We assume known data standard deviation $\sigma = 1.0$ and observe five measurements:
+
+| Observation | Value |
+|:-----------:|:-----:|
+| 1 | 3.2 |
+| 2 | 4.1 |
+| 3 | 3.8 |
+| 4 | 4.5 |
+| 5 | 3.9 |
+
+Sample mean $\bar{y} = 3.9$.
+
+**Prior precision:** $\tau_0 = 1/2^2 = 0.25$
+
+**Total data precision:** $n\tau = 5/1.0^2 = 5.0$
+
+**Posterior precision:**
+
+
+$$
+\tau_n = 0.25 + 5.0 = 5.25 \implies \sigma_n^2 \approx 0.19,\; \sigma_n \approx 0.44
+$$
+
+
+
+**Posterior mean:**
+
+
+$$
+\mu_n = \frac{(0.25 \times 0) + (5.0 \times 3.9)}{5.25} = \frac{19.5}{5.25} \approx 3.71
+$$
+
+
+
+The posterior mean of $3.71$ sits between the prior mean ($0$) and the sample mean ($3.9$). Because the data precision ($5.0$) is much larger than the prior precision ($0.25$), the shrinkage is small — the data dominates. The posterior is also considerably sharper than both the prior and the likelihood.
+
+## Interactive: Normal-Normal Explorer
+
+Adjust the prior parameters and observed data below to see how the posterior updates.
+
+<NormalNormalExplorer />
+
+---
+
+**Next:** [Bayesian Linear Regression](/gradient-lectures/tracks/bayesian-statistics/04-bayesian-linear-regression/) — extending the Normal-Normal model to regression with a single coefficient.

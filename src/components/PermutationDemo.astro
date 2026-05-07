@@ -1,0 +1,189 @@
+---
+// PermutationDemo — interactive permutation test
+---
+
+<div class="interactive-chart" id="perm-demo">
+  <div class="interactive-chart__header">Interactive — Permutation Test</div>
+  <div class="interactive-chart__canvas">
+    <svg id="perm-svg" width="100%" viewBox="0 0 700 280" preserveAspectRatio="xMidYMid meet" aria-label="Permutation null distribution"></svg>
+    <div id="perm-stats" class="chart-stats-row"></div>
+  </div>
+  <div class="interactive-chart__controls">
+    <div class="chart-control">
+      <label for="perm-nt">Treatment values (comma-sep)</label>
+      <input type="text" id="perm-nt" value="9,10,11,12,14,15" maxlength="100" />
+    </div>
+    <div class="chart-control">
+      <label for="perm-nc">Control values (comma-sep)</label>
+      <input type="text" id="perm-nc" value="4,5,6,7,8,13" maxlength="100" />
+    </div>
+    <div class="chart-control">
+      <label for="perm-reps">Permutations <span class="control-value" id="perm-reps-val">500</span></label>
+      <input type="range" id="perm-reps" min="100" max="2000" step="100" value="500" />
+    </div>
+    <div class="chart-control" style="justify-content: flex-end;">
+      <button id="perm-run" class="chart-btn">Run / Reshuffle</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  "use strict";
+
+  function sanitize(str) {
+    return str.replace(/[^0-9,.\-\s]/g, '').slice(0, 100);
+  }
+
+  function parseValues(str) {
+    return str.split(',').map(s => parseFloat(s.trim())).filter(v => !isNaN(v));
+  }
+
+  function mean(arr) { return arr.reduce((a, b) => a + b, 0) / arr.length; }
+
+  let seed = Date.now();
+  function rand() {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  const svg = document.getElementById('perm-svg');
+  const statsDiv = document.getElementById('perm-stats');
+  const margin = { top: 20, right: 20, bottom: 38, left: 50 };
+  const W = 700, H = 280;
+  const iW = W - margin.left - margin.right, iH = H - margin.top - margin.bottom;
+
+  function run() {
+    const tRaw = sanitize(document.getElementById('perm-nt').value);
+    const cRaw = sanitize(document.getElementById('perm-nc').value);
+    const treatment = parseValues(tRaw);
+    const control = parseValues(cRaw);
+    const reps = parseInt(document.getElementById('perm-reps').value);
+
+    if (treatment.length < 2 || control.length < 2) {
+      svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" font-size="13" fill="#71717a">Enter at least 2 values per group.</text>`;
+      statsDiv.innerHTML = '';
+      return;
+    }
+
+    const nT = treatment.length, nC = control.length;
+    const pooled = [...treatment, ...control];
+    const obsD = mean(treatment) - mean(control);
+    const absObs = Math.abs(obsD);
+
+    seed = Date.now();
+    const deltas = [];
+    for (let r = 0; r < reps; r++) {
+      const sh = shuffle(pooled);
+      deltas.push(mean(sh.slice(0, nT)) - mean(sh.slice(nT)));
+    }
+
+    const dMin = Math.min(...deltas, -absObs * 1.4 - 0.01);
+    const dMax = Math.max(...deltas, absObs * 1.4 + 0.01);
+    const nBins = Math.min(40, Math.ceil(Math.sqrt(reps)));
+    const binW = (dMax - dMin) / nBins;
+    const bins = new Array(nBins).fill(0);
+    deltas.forEach(d => {
+      const idx = Math.min(Math.floor((d - dMin) / binW), nBins - 1);
+      bins[idx]++;
+    });
+    const binMax = Math.max(...bins, 1);
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#a1a1aa' : '#71717a';
+    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+    const axisColor = isDark ? '#262626' : '#e4e4e7';
+    const barColor = isDark ? '#3b4a6b' : '#c7d2fe';
+    const tailColor = '#ef4444';
+
+    function xScale(v) { return margin.left + (v - dMin) / (dMax - dMin) * iW; }
+    function yScale(v) { return margin.top + iH - (v / binMax) * iH; }
+
+    let barsSVG = '';
+    bins.forEach((count, i) => {
+      if (count === 0) return;
+      const bLeft = dMin + i * binW;
+      const bRight = bLeft + binW;
+      const bCenter = (bLeft + bRight) / 2;
+      // Only colour as tail when there's a meaningful observed delta
+      const isTail = absObs > 1e-6 && Math.abs(bCenter) >= absObs;
+      const fill = isTail ? tailColor : barColor;
+      const x = xScale(bLeft).toFixed(1);
+      const y = yScale(count).toFixed(1);
+      const bw = Math.max(xScale(bRight) - xScale(bLeft) - 1, 1).toFixed(1);
+      const bh = (margin.top + iH - parseFloat(y)).toFixed(1);
+      barsSVG += `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="${fill}" fill-opacity="0.8" rx="1"/>`;
+    });
+
+    const obsX = xScale(obsD).toFixed(1);
+    const obsXN = xScale(-obsD).toFixed(1);
+    const obsLines =
+      `<line x1="${obsX}" y1="${margin.top}" x2="${obsX}" y2="${(margin.top + iH).toFixed(1)}" stroke="#ef4444" stroke-width="2"/>` +
+      `<text x="${obsX}" y="${(margin.top + 12).toFixed(1)}" text-anchor="middle" font-size="10" fill="#ef4444" font-weight="600">Δ_obs</text>` +
+      (absObs > 1e-6 ?
+        `<line x1="${obsXN}" y1="${margin.top}" x2="${obsXN}" y2="${(margin.top + iH).toFixed(1)}" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,3"/>` +
+        `<text x="${obsXN}" y="${(margin.top + 12).toFixed(1)}" text-anchor="middle" font-size="10" fill="#ef4444">−Δ_obs</text>`
+        : '');
+
+    const xAxis = `<line x1="${margin.left}" y1="${margin.top + iH}" x2="${margin.left + iW}" y2="${margin.top + iH}" stroke="${axisColor}" stroke-width="1.5"/>`;
+    const yAxis = `<line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + iH}" stroke="${axisColor}" stroke-width="1.5"/>`;
+
+    const xStep = (dMax - dMin) / 6;
+    const xTicks = [];
+    for (let v = dMin; v <= dMax + 0.001; v += xStep) xTicks.push(v);
+    const xTicksSVG = xTicks.map(v =>
+      `<text x="${xScale(v).toFixed(1)}" y="${(margin.top + iH + 14).toFixed(1)}" text-anchor="middle" font-size="10" fill="${textColor}">${v.toFixed(1)}</text>` +
+      `<line x1="${xScale(v).toFixed(1)}" y1="${margin.top}" x2="${xScale(v).toFixed(1)}" y2="${(margin.top + iH).toFixed(1)}" stroke="${gridColor}" stroke-dasharray="3,3"/>`
+    ).join('');
+
+    const xLabel = `<text x="${(margin.left + iW / 2).toFixed(1)}" y="${(H - 3).toFixed(1)}" text-anchor="middle" font-size="11" fill="${textColor}">Δ_sim = mean(T) − mean(C)</text>`;
+    const yLabel = `<text x="${(margin.left - 38).toFixed(1)}" y="${(margin.top + iH / 2).toFixed(1)}" text-anchor="middle" transform="rotate(-90,${(margin.left - 38).toFixed(1)},${(margin.top + iH / 2).toFixed(1)})" font-size="11" fill="${textColor}">Count</text>`;
+
+    svg.innerHTML = barsSVG + obsLines + xAxis + yAxis + xTicksSVG + xLabel + yLabel;
+
+    const extreme = deltas.filter(d => Math.abs(d) >= absObs).length;
+    // Add 1 to numerator and denominator to include the observed data (standard practice for permutation p-values)
+    const pval = (extreme + 1) / (reps + 1);
+
+    statsDiv.innerHTML = [
+      { label: 'Observed Δ', value: obsD.toFixed(4) },
+      { label: 'Permutations', value: reps.toLocaleString() },
+      { label: 'Extreme count', value: extreme.toString() },
+      { label: 'Two-sided p', value: pval < 0.001 ? '<0.001' : pval.toFixed(4) },
+      { label: 'n_T / n_C', value: `${nT} / ${nC}` },
+    ].map(s =>
+      `<div class="chart-stat"><span class="chart-stat__label">${s.label}</span><span class="chart-stat__value">${s.value}</span></div>`
+    ).join('');
+  }
+
+  document.getElementById('perm-run').addEventListener('click', run);
+
+  document.getElementById('perm-reps').addEventListener('input', () => {
+    document.getElementById('perm-reps-val').textContent = document.getElementById('perm-reps').value;
+    run();
+  });
+
+  // Sanitize on both input and change to handle paste and typing
+  ['perm-nt', 'perm-nc'].forEach(id => {
+    const el = document.getElementById(id);
+    const applyAndRun = () => {
+      el.value = sanitize(el.value);
+      run();
+    };
+    el.addEventListener('input', applyAndRun);
+    el.addEventListener('change', applyAndRun);
+  });
+
+  new MutationObserver(run).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  run();
+})();
+</script>

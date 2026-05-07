@@ -1,0 +1,184 @@
+---
+title: Evidence Aggregation
+description: Fisher's method and Stouffer's Z-score method for combining p-values from independent experiments. Includes weighted Stouffer and an interactive sensitivity comparison.
+---
+
+import Callout from '../../../../../components/Callout.astro';
+
+Frustrated that you ran the same A/B test three times and it came *just short* of significance every time?
+
+Under the null hypothesis, p-values are uniformly distributed on $(0, 1)$. A run like $\{0.07, 0.09, 0.11\}$ is cumulatively improbable — if nothing is happening, seeing three consecutive near-misses is unlikely. Evidence aggregation methods formalize this intuition: they combine $k$ independent p-values into a single global test statistic with a known null distribution.
+
+Two classical procedures do this via different transformations: **Fisher's method** (logarithmic) and **Stouffer's method** (normal quantile).
+
+## Fisher's Method
+
+Under the null hypothesis, each p-value is uniformly distributed: $p_i \sim \text{Uniform}(0, 1)$.
+
+Fisher's method transforms each p-value into a chi-squared variable, then exploits the additivity of independent chi-squared distributions.
+
+<Callout type="note" title="Derivation: Fisher's combined probability test" collapsible defaultOpen={false}>
+
+**Step 1 — Transform the uniform p-value**
+
+Apply $-\ln(p_i)$. To find its distribution, compute the CDF:
+
+
+$$
+P(-\ln(p_i) \leq x) = P(p_i \geq e^{-x}) = 1 - e^{-x}
+$$
+
+
+
+This is the CDF of an **Exponential(1)** distribution.
+
+**Step 2 — Scale to chi-squared**
+
+Multiply by 2: $-2\ln(p_i)$. An Exponential(rate $1/2$) distribution is identical to a $\chi^2_2$ distribution:
+
+
+$$
+-2\ln(p_i) \sim \chi^2_2
+$$
+
+
+
+**Step 3 — Sum across independent experiments**
+
+Independent chi-squared variables sum to another chi-squared with degrees of freedom equal to the sum:
+
+
+$$
+\chi^2_{\text{global}} = \sum_{i=1}^k -2\ln(p_i) \sim \chi^2_{2k}
+$$
+
+
+
+</Callout>
+
+**Procedure:**
+1. Compute $X^2 = -2\displaystyle\sum_{i=1}^k \ln(p_i)$
+2. Evaluate the global p-value as $P(\chi^2_{2k} \geq X^2)$
+
+<Callout type="example" title="Fisher's method worked example" collapsible defaultOpen={false}>
+
+Three experiments: $p_1 = 0.07$, $p_2 = 0.09$, $p_3 = 0.11$ — all above $\alpha = 0.05$.
+
+**Transform:**
+- $-2\ln(0.07) \approx 5.319$
+- $-2\ln(0.09) \approx 4.816$
+- $-2\ln(0.11) \approx 4.415$
+
+**Sum:** $X^2 = 5.319 + 4.816 + 4.415 = 14.549$
+
+**Evaluate against $\chi^2_6$:** $p_{\text{global}} = P(\chi^2_6 \geq 14.549) \approx 0.024$
+
+Significant at $\alpha = 0.05$. Under the null, observing three p-values this consistently small would happen only 2.4% of the time.
+
+</Callout>
+
+**Key property of Fisher's method:** Because $-\ln(p) \to +\infty$ as $p \to 0$, a single extreme p-value can **dominate the sum** and virtually guarantee significance regardless of the other experiments. This is a strength when screening for *any* signal, and a liability when you need *consistent* evidence across all experiments.
+
+## Stouffer's Z-Score Method
+
+Stouffer's method transforms each p-value into a standard normal variable, then exploits the linearity of normal distributions.
+
+<Callout type="note" title="Derivation: Stouffer's Z-score method" collapsible defaultOpen={false}>
+
+**Step 1 — Map to standard normal**
+
+Apply the inverse normal CDF $\Phi^{-1}$ to the complement, ensuring small p-values map to large positive Z-scores:
+
+
+$$
+Z_i = \Phi^{-1}(1 - p_i) \sim \mathcal{N}(0, 1) \quad \text{under } H_0
+$$
+
+
+
+**Step 2 — Sum the Z-scores**
+
+
+$$
+S = \sum_{i=1}^k Z_i \sim \mathcal{N}(0, k)
+$$
+
+
+
+**Step 3 — Standardize**
+
+Divide by $\sqrt{k}$ to restore variance 1:
+
+
+$$
+Z_{\text{global}} = \frac{\sum_{i=1}^k Z_i}{\sqrt{k}} \sim \mathcal{N}(0, 1)
+$$
+
+
+
+</Callout>
+
+**Procedure:**
+1. Compute $Z_i = \Phi^{-1}(1 - p_i)$ for each test
+2. Compute $Z = \frac{\sum_{i=1}^k Z_i}{\sqrt{k}}$
+3. Evaluate the global p-value as $P(\mathcal{N}(0,1) \geq Z)$
+
+<Callout type="example" title="Stouffer's method worked example" collapsible defaultOpen={false}>
+
+Same three experiments: $p_1 = 0.07$, $p_2 = 0.09$, $p_3 = 0.11$.
+
+**Map to Z-scores:**
+- $Z_1 = \Phi^{-1}(0.93) \approx 1.476$
+- $Z_2 = \Phi^{-1}(0.91) \approx 1.341$
+- $Z_3 = \Phi^{-1}(0.89) \approx 1.227$
+
+**Sum and standardize:** $Z = (1.476 + 1.341 + 1.227) / \sqrt{3} \approx 2.334$
+
+**Global p-value:** $P(\mathcal{N}(0,1) \geq 2.334) \approx 0.010$
+
+Significant. Unlike Fisher's method, this result was driven by all three experiments leaning consistently in the same direction — no single outlier could have produced this Z-score.
+
+</Callout>
+
+**Key property of Stouffer's method:** The Z-score mapping grows slowly as $p \to 0$. No single extreme p-value can dominate to anything like the same degree as in Fisher's method. Stouffer rewards **directional consistency**.
+
+## Comparison: Fisher vs. Stouffer
+
+| | Fisher | Stouffer |
+|---|---|---|
+| Transform | $-2\ln(p_i)$ | $\Phi^{-1}(1-p_i)$ |
+| Null distribution | $\chi^2_{2k}$ | $\mathcal{N}(0,1)$ |
+| Sensitivity to outliers | **High** — one tiny p dominates | **Low** — no single outlier dominates |
+| Rewards | Any extreme signal | Consistent directional evidence |
+| Supports weighting | Not in closed form | Yes (see below) |
+
+## Weighted Stouffer's Method
+
+When $k$ experiments differ substantially in sample size, treating them as equal contributors distorts the aggregate. A larger experiment is more reliable — its p-value is more stable and should carry more weight.
+
+**Why weight by $\sqrt{N_i}$:**
+
+A Z-score from $N_i$ observations has precision proportional to $\sqrt{N_i}$. Assigning $w_i = \sqrt{N_i}$ makes each experiment's contribution proportional to its precision — the generalized least-squares solution.
+
+**The weighted statistic:**
+
+
+$$
+Z_w = \frac{\displaystyle\sum_{i=1}^k w_i Z_i}{\sqrt{\displaystyle\sum_{i=1}^k w_i^2}} \sim \mathcal{N}(0, 1)
+$$
+
+
+
+<Callout type="note" title="Why this doesn't bias the result" collapsible defaultOpen={false}>
+
+Under $H_0$, each $Z_i \sim \mathcal{N}(0, 1)$, so $\mathbb{E}[T] = \sum_i w_i \cdot 0 = 0$. The weights cannot shift the null distribution. The variance of $T = \sum w_i Z_i$ is $\sum w_i^2$ (by independence). Dividing by $\sqrt{\sum w_i^2}$ standardizes to variance 1. The null distribution $\mathcal{N}(0, 1)$ is preserved regardless of the weights — no recalibration of critical values is needed.
+
+</Callout>
+
+<Callout type="warning" title="The independence assumption" collapsible defaultOpen={false}>
+
+Both Fisher and Stouffer assume the $k$ experiments are **independent**. If two experiments share subjects or overlap in time, their Z-scores will be positively correlated. $\text{Var}(T)$ will exceed $\sum w_i^2$, the denominator will underestimate the true spread, and the test will be too liberal (inflated false positive rate).
+
+In such cases, a correlation correction (Strube's extension or full GLS) must be applied.
+
+</Callout>

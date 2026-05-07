@@ -1,0 +1,272 @@
+---
+// PeekingSimulation — simulate peeking paths under H0, compare naive vs OBF boundary
+---
+
+<div class="interactive-chart" id="peeking-sim">
+  <div class="interactive-chart__header">Interactive — Peeking Simulation (under H₀)</div>
+  <div class="interactive-chart__canvas">
+    <div id="peeking-tabs" class="peeking-tabs">
+      <button class="peeking-tab active" data-tab="naive">Naive Peeking</button>
+      <button class="peeking-tab" data-tab="obf">O'Brien-Fleming</button>
+    </div>
+    <svg id="peeking-svg" width="100%" viewBox="0 0 700 280" preserveAspectRatio="xMidYMid meet" aria-label="Peeking simulation paths"></svg>
+    <div id="peeking-stats" class="chart-stats-row"></div>
+  </div>
+  <div class="interactive-chart__controls">
+    <div class="chart-control">
+      <label for="pk-n">Max sample size N <span class="control-value" id="pk-n-val">500</span></label>
+      <input type="range" id="pk-n" min="100" max="1000" step="50" value="500" />
+    </div>
+    <div class="chart-control">
+      <label for="pk-sims">Simulations <span class="control-value" id="pk-sims-val">40</span></label>
+      <input type="range" id="pk-sims" min="10" max="80" step="5" value="40" />
+    </div>
+    <div class="chart-control">
+      <label for="pk-k">OBF looks K <span class="control-value" id="pk-k-val">5</span></label>
+      <input type="range" id="pk-k" min="2" max="10" step="1" value="5" />
+    </div>
+    <div class="chart-control" style="justify-content: flex-end;">
+      <button id="pk-resim" class="chart-btn">Resimulate</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  #peeking-sim .peeking-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  #peeking-sim .peeking-tab {
+    padding: 0.35rem 0.9rem;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    background: var(--sl-color-bg);
+    color: var(--gl-muted, #71717a);
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  #peeking-sim .peeking-tab:hover {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-text-accent);
+  }
+
+  #peeking-sim .peeking-tab.active {
+    background: var(--sl-color-accent);
+    color: #fff;
+    border-color: var(--sl-color-accent);
+  }
+
+  #peeking-sim .peeking-tab:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+</style>
+
+<script>
+(function() {
+  "use strict";
+
+  let seed = Date.now();
+  function rand() {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  }
+
+  function randn() {
+    let u = 0, v = 0;
+    while (u === 0) u = rand();
+    while (v === 0) v = rand();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  // Scope all DOM queries to the container to prevent cross-instance interference
+  const container = document.getElementById('peeking-sim');
+  const svg = container.querySelector('#peeking-svg');
+  const statsDiv = container.querySelector('#peeking-stats');
+  const margin = { top: 20, right: 20, bottom: 35, left: 44 };
+  const W = 700, H = 280;
+  const iW = W - margin.left - margin.right, iH = H - margin.top - margin.bottom;
+
+  let currentTab = 'naive';
+  let simData = null;
+
+  function simulate() {
+    const N = parseInt(container.querySelector('#pk-n').value);
+    const nSims = parseInt(container.querySelector('#pk-sims').value);
+    const K = parseInt(container.querySelector('#pk-k').value);
+
+    seed = Date.now();
+    const paths = [];
+    for (let s = 0; s < nSims; s++) {
+      let sx = 0, sy = 0, sx2 = 0, sy2 = 0;
+      const zs = [];
+      for (let n = 1; n <= N; n++) {
+        const x = randn(), y = randn();
+        sx += x; sy += y;
+        sx2 += x * x; sy2 += y * y;
+        const varX = n > 1 ? (sx2 - sx * sx / n) / (n - 1) : 1;
+        const varY = n > 1 ? (sy2 - sy * sy / n) / (n - 1) : 1;
+        const se = Math.sqrt((varX + varY) / n);
+        zs.push(se > 0 ? Math.abs((sx / n - sy / n) / se) : 0);
+      }
+      paths.push(zs);
+    }
+
+    const alpha = 0.05;
+    const lookTimes = Array.from({ length: K }, (_, k) => Math.round((k + 1) * N / K));
+    // Exact OBF constants for alpha=0.05, two-sided
+    const obfConstants = {
+      1: 1.960, 2: 1.977, 3: 2.004, 4: 2.024, 5: 2.040,
+      6: 2.053, 7: 2.063, 8: 2.072, 9: 2.080, 10: 2.087
+    };
+    const obfC = obfConstants[K] || 2.087;
+
+    simData = { paths, N, K, alpha, lookTimes, obfC };
+    return simData;
+  }
+
+  function render() {
+    if (!simData) simData = simulate();
+    const { paths, N, K, alpha, lookTimes, obfC } = simData;
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#a1a1aa' : '#71717a';
+    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+    const axisColor = isDark ? '#262626' : '#e4e4e7';
+    const accentColor = isDark ? '#818cf8' : '#6366f1';
+
+    const zCrit = 1.96;
+    const isOBF = currentTab === 'obf';
+
+    function xScale(n) { return margin.left + (n - 1) / (N - 1) * iW; }
+    function yScale(z) { return margin.top + iH - Math.min(z, 5.5) / 5.5 * iH; }
+
+    let boundaryPath = '';
+    let crossPoints = '';
+    let nFP = 0;
+
+    if (isOBF) {
+      const bPts = lookTimes.map(t => ({ n: t, z: Math.min(obfC / Math.sqrt(t / N), 5.5) }));
+      let bPath = `M ${xScale(1).toFixed(1)},${yScale(bPts[0].z).toFixed(1)}`;
+      bPts.forEach((pt, i) => {
+        if (i > 0) bPath += ` L ${xScale(lookTimes[i - 1] + 1).toFixed(1)},${yScale(pt.z).toFixed(1)}`;
+        bPath += ` L ${xScale(pt.n).toFixed(1)},${yScale(pt.z).toFixed(1)}`;
+      });
+      bPath += ` L ${xScale(N).toFixed(1)},${yScale(bPts[bPts.length - 1].z).toFixed(1)}`;
+      boundaryPath = `<path d="${bPath}" stroke="${accentColor}" stroke-width="2" fill="none" stroke-dasharray="6,3" vector-effect="non-scaling-stroke"/>`;
+
+      paths.forEach(path => {
+        let fp = false;
+        lookTimes.forEach(t => {
+          if (!fp && path[t - 1] > obfC / Math.sqrt(t / N)) fp = true;
+        });
+        if (fp) nFP++;
+      });
+    } else {
+      boundaryPath = `<line x1="${margin.left}" y1="${yScale(zCrit).toFixed(1)}" x2="${margin.left + iW}" y2="${yScale(zCrit).toFixed(1)}" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,4" vector-effect="non-scaling-stroke"/>`;
+      paths.forEach(path => { if (path.some(z => z > zCrit)) nFP++; });
+    }
+
+    const palette = [
+      isDark ? '#475569' : '#94a3b8',
+      isDark ? '#4b5563' : '#9ca3af',
+      isDark ? '#4c1d95' : '#c4b5fd',
+      isDark ? '#14532d' : '#86efac',
+      isDark ? '#7f1d1d' : '#fca5a5',
+      isDark ? '#78350f' : '#fed7aa',
+    ];
+
+    let pathsSVG = '';
+    paths.forEach((path, idx) => {
+      const color = palette[idx % palette.length];
+      const pts = path.map((z, i) => `${xScale(i + 1).toFixed(1)},${yScale(z).toFixed(1)}`).join(' L ');
+      pathsSVG += `<path d="M ${pts}" stroke="${color}" stroke-width="0.9" fill="none" opacity="0.6" vector-effect="non-scaling-stroke"/>`;
+
+      let crossIdx = -1;
+      if (isOBF) {
+        lookTimes.forEach(t => {
+          if (crossIdx === -1 && path[t - 1] > obfC / Math.sqrt(t / N)) crossIdx = t - 1;
+        });
+      } else {
+        crossIdx = path.findIndex(z => z > zCrit);
+      }
+      if (crossIdx !== -1) {
+        crossPoints += `<circle cx="${xScale(crossIdx + 1).toFixed(1)}" cy="${yScale(path[crossIdx]).toFixed(1)}" r="3" fill="#ef4444" opacity="0.8"/>`;
+      }
+    });
+
+    const xAxis = `<line x1="${margin.left}" y1="${margin.top + iH}" x2="${margin.left + iW}" y2="${margin.top + iH}" stroke="${axisColor}" stroke-width="1.5"/>`;
+    const yAxis = `<line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + iH}" stroke="${axisColor}" stroke-width="1.5"/>`;
+
+    const xStep = Math.round(N / 5);
+    const xTicks = [];
+    for (let i = xStep; i <= N; i += xStep) xTicks.push(i);
+    const xTicksSVG = xTicks.map(v =>
+      `<text x="${xScale(v).toFixed(1)}" y="${(margin.top + iH + 14).toFixed(1)}" text-anchor="middle" font-size="10" fill="${textColor}">${v}</text>` +
+      `<line x1="${xScale(v).toFixed(1)}" y1="${margin.top}" x2="${xScale(v).toFixed(1)}" y2="${(margin.top + iH).toFixed(1)}" stroke="${gridColor}" stroke-dasharray="3,3"/>`
+    ).join('');
+
+    const yTicks = [0, 1, 2, 3, 4, 5];
+    const yTicksSVG = yTicks.map(v =>
+      `<text x="${(margin.left - 8).toFixed(1)}" y="${(yScale(v) + 4).toFixed(1)}" text-anchor="end" font-size="10" fill="${textColor}">${v}</text>` +
+      `<line x1="${margin.left}" y1="${yScale(v).toFixed(1)}" x2="${margin.left + iW}" y2="${yScale(v).toFixed(1)}" stroke="${gridColor}" stroke-dasharray="2,4"/>`
+    ).join('');
+
+    const xLabel = `<text x="${(margin.left + iW / 2).toFixed(1)}" y="${(H - 3).toFixed(1)}" text-anchor="middle" font-size="11" fill="${textColor}">Users per group (n)</text>`;
+    const yLabel = `<text x="${(margin.left - 36).toFixed(1)}" y="${(margin.top + iH / 2).toFixed(1)}" text-anchor="middle" transform="rotate(-90,${(margin.left - 36).toFixed(1)},${(margin.top + iH / 2).toFixed(1)})" font-size="11" fill="${textColor}">|Z| statistic</text>`;
+
+    svg.innerHTML = pathsSVG + crossPoints + boundaryPath + xAxis + yAxis + xTicksSVG + yTicksSVG + xLabel + yLabel;
+
+    const fprPct = (nFP / paths.length * 100).toFixed(1);
+    const endFP = paths.filter(p => p[p.length - 1] > zCrit).length;
+
+    statsDiv.innerHTML = [
+      { label: 'Simulations', value: paths.length.toString() },
+      { label: isOBF ? 'FPR at K looks' : 'Anytime FPR', value: `${fprPct}%` },
+      { label: 'FPR at end', value: `${(endFP / paths.length * 100).toFixed(1)}%` },
+      { label: 'Target α', value: '5.0%' },
+      ...(isOBF ? [{ label: 'OBF constant C', value: simData.obfC.toFixed(3) }] : []),
+    ].map(s =>
+      `<div class="chart-stat"><span class="chart-stat__label">${s.label}</span><span class="chart-stat__value">${s.value}</span></div>`
+    ).join('');
+  }
+
+  // Scoped tab switching
+  container.querySelectorAll('.peeking-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.peeking-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTab = btn.dataset.tab;
+      render();
+    });
+  });
+
+  container.querySelector('#pk-resim').addEventListener('click', () => {
+    simData = simulate();
+    render();
+  });
+
+  function bindSlider(id, displayId, decimals = 0) {
+    const el = container.querySelector(`#${id}`);
+    const disp = container.querySelector(`#${displayId}`);
+    el.addEventListener('input', () => {
+      disp.textContent = parseFloat(el.value).toFixed(decimals);
+      simData = simulate();
+      render();
+    });
+  }
+
+  bindSlider('pk-n', 'pk-n-val', 0);
+  bindSlider('pk-sims', 'pk-sims-val', 0);
+  bindSlider('pk-k', 'pk-k-val', 0);
+
+  new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  simData = simulate();
+  render();
+})();
+</script>

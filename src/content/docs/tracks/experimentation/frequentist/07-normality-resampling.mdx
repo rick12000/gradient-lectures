@@ -1,0 +1,100 @@
+---
+title: Normality & Resampling
+description: CLT failure modes, log transformations, permutation testing, and the block bootstrap. Includes an interactive permutation test demo.
+---
+
+import Callout from '../../../../../components/Callout.astro';
+import PermutationDemo from '../../../../../components/PermutationDemo.astro';
+
+Our core testing framework assumes a normally distributed mean for the test metric. Thanks to the [Central Limit Theorem](/gradient-lectures/tracks/experimentation/frequentist/02-core-estimation/), this is generally valid even if the underlying data is non-normal. However, there are situations where the CLT breaks down.
+
+## Failure Modes of the Central Limit Theorem
+
+The CLT fails to provide a reliable normal approximation in two main scenarios:
+
+**Not enough data:** The CLT holds asymptotically. High skewness or large outliers require significantly larger sample sizes before the sampling distribution normalizes.
+
+**Non-mean metrics:** The CLT only applies to sample means. For medians, quantiles, or variances, the CLT offers no guarantees.
+
+When faced with normality violations, we have two common mitigation strategies: **transform the values** or **simulate the null distribution** directly with resampling.
+
+## Log Transformations
+
+For heavily right-skewed positive data, a **log transformation** compresses the long tail:
+
+
+$$
+X_i^* = \log(X_i + 1)
+$$
+
+
+
+This stabilizes variance driven by extreme values, but fundamentally changes the hypothesis — shifting the analysis from absolute units to percentage changes (or geometric means). Use when the business question is about *relative* rather than *absolute* effects.
+
+## Resampling Methods
+
+When transforming the metric changes the business question too much, resampling keeps the observed values intact and uses computation to approximate the sampling distribution.
+
+### Permutation Testing
+
+Permutation testing asks: *what treatment effects would appear if the treatment labels were meaningless?*
+
+Under the **sharp null hypothesis**, the treatment changes nobody's outcome. If that is true, any observed value could have received either label — so we can repeatedly reshuffle labels and recompute the test statistic to build the null distribution from scratch.
+
+**Workflow:**
+1. Compute the observed statistic: $\Delta_{\text{obs}} = \bar{X}_T - \bar{X}_C$
+2. Pool all outcomes from both groups
+3. Reassign treatment/control labels randomly (or enumerate all possible assignments)
+4. Recompute $\Delta_{\text{sim}}$ for each reassignment
+5. The p-value = fraction of $|\Delta_{\text{sim}}| \geq |\Delta_{\text{obs}}|$
+
+<Callout type="example" title="Permutation test worked example" collapsible defaultOpen={false}>
+
+Suppose we observe 12 users, 6 per group:
+
+| Group | Values | Mean |
+|:-----:|:------:|:----:|
+| Treatment | 9, 10, 11, 12, 14, 15 | 11.83 |
+| Control | 4, 5, 6, 7, 8, 13 | 7.17 |
+
+Observed difference: $\Delta_{\text{obs}} = 11.83 - 7.17 = 4.67$
+
+Pool all 12 values: `[4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]`
+
+One example permutation — randomly assign 6 values to "Treatment":
+
+| Group | Values | Mean |
+|:-----:|:------:|:----:|
+| Treatment | 4, 6, 9, 11, 12, 15 | 9.50 |
+| Control | 5, 7, 8, 10, 13, 14 | 9.50 |
+
+$\Delta_{\text{sim}} = 0.00$ for this permutation.
+
+There are $\binom{12}{6} = 924$ possible assignments. Enumerating all of them and plotting their differences gives the **exact null distribution**. If 24 out of 924 produce $|\Delta_{\text{sim}}| \geq 4.67$, the p-value is $24/924 = 0.026$. Significant at $\alpha = 0.05$.
+
+</Callout>
+
+## Interactive: Permutation Test Demo
+
+<PermutationDemo />
+
+### Bootstrapping
+
+While permutation testing shuffles labels to test the null hypothesis of no effect, **bootstrapping** resamples the data *with replacement* to estimate the variance and confidence intervals of the estimator itself.
+
+This is particularly useful for:
+- Non-mean metrics (medians, quantiles)
+- Very small samples where the CLT gives unreliable approximations
+- Constructing confidence intervals for complex statistics
+
+<Callout type="warning" title="Block bootstrap for clustered data" collapsible defaultOpen={false}>
+
+A separate failure mode appears when the **unit of analysis is smaller than the unit of randomization**. For example, if users are randomized but page views are analyzed, page views from the same user are correlated rather than independent.
+
+Standard bootstrapping would break this dependency structure by resampling individual page views. To fix this, use the **block bootstrap**: resample whole users, not individual observations. If User A is drawn, all of User A's page views come along, preserving the within-user dependency structure and ensuring variance estimates remain accurate.
+
+</Callout>
+
+---
+
+**Next:** [Evidence Aggregation](/gradient-lectures/tracks/experimentation/frequentist/08-evidence-aggregation/) — combining p-values across independent experiments.
