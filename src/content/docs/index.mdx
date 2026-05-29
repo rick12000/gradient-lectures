@@ -5,13 +5,14 @@ template: splash
 draft: false
 ---
 
+import { Image } from 'astro:assets';
 import fullLogo from '@assets/full_logo.png';
 import TrackCards from '@components/TrackCards.astro';
 import { withBase } from '@utils/withBase';
 
 <div class="splash-container">
   <div class="hero-container">
-    <img src={fullLogo.src} alt="Gradient Lectures" class="home-logo" />
+    <Image src={fullLogo} alt="Gradient Lectures" width={470} class="home-logo" />
     <p class="hero-subtitle">A free, curated set of learning tracks and lecture notes on coding, statistics, and machine learning.</p>
   </div>
 
