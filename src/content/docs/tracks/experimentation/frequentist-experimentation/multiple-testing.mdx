@@ -1,0 +1,186 @@
+---
+title: Multiple Testing
+sidebar:
+  order: 3
+---
+
+import Callout from '../../../../../components/Callout.astro';
+
+Evaluating multiple hypotheses simultaneously inflates the false positive rate beyond the intended significance level.
+
+## 1. The Multiple Comparisons Problem
+
+When we conduct a single hypothesis test at $\alpha = 0.05$, we accept a 5% probability of a false positive.
+
+If we conduct $m$ independent tests, the probability of *avoiding* a false positive on any single test is $1 - \alpha$. The probability of avoiding false positives across all $m$ tests is the product of their individual probabilities:
+
+$$P(\text{no false positives}) = (1 - \alpha)^m$$
+
+Consequently, the probability of making *at least one* false positive decision across the entire set is:
+
+$$P(\text{at least one false positive}) = 1 - (1 - \alpha)^m$$
+
+<Callout type="note" title="Family-Wise Error Rate (FWER)">
+
+This probability is the FWER. The formula shows that each additional test consumes part of our overall error budget.
+
+</Callout>
+
+## 2. Practical Scenarios
+
+This problem manifests in two primary ways during product experimentation.
+
+### 2.1 Multiple Metrics
+
+A classical A/B test evaluates a single metric. In practice, teams monitor dashboards with dozens of metrics (conversion rate, CTR, retention, etc.).
+
+If a team tests 20 independent metrics at $\alpha = 0.05$ looking for "any significant result," the FWER is $1 - (0.95)^{20} \approx 0.64$. There is a 64% chance of finding a "statistically significant" result even if the treatment does absolutely nothing.
+
+### 2.2 Multiple Variants
+
+Testing multiple variants simultaneously against a single control group (A/B/n testing) inherently requires multiple comparisons.
+
+- **Each Variant vs. Control**: Testing $k$ variants independently against a control requires $k$ comparisons. For $k = 5$, the FWER is $1 - (0.95)^5 \approx 0.23$.
+- **All Pairwise Comparisons**: Comparing all possible pairs among $k$ variants plus the control scales quadratically to $\frac{(k+1)k}{2}$. For 5 variants (6 groups), this results in 15 comparisons and a 54% false positive rate.
+
+## 3. Structural Mitigations
+
+Before applying statistical corrections, we can mitigate multiple comparisons through experimental design.
+
+- **Define a Primary Metric**: Pre-specify exactly one metric for decision-making at $\alpha = 0.05$. Treat all other metrics as guardrails.
+- **Avoid Multivariate Testing**: Testing all possible variant combinations reduces precision and inflates error rates. Only do this with a pre-specified rationale (e.g., measuring an interaction effect).
+
+## 4. Statistical Mitigations
+
+When multiple comparisons are unavoidable, we must adjust our statistical thresholds. Corrections fall into two categories: strict control (FWER) and scalable control (FDR).
+
+### 4.1 Family-Wise Error Rate (FWER) Control
+
+FWER methods maintain $P(\text{at least one false positive}) \leq \alpha$ across all $m$ tests. This is the most stringent form of error control.
+
+#### 4.1.1 Bonferroni Correction
+
+To maintain an overall error rate of $\alpha$, we find a per-comparison threshold ($\alpha_{\text{pc}}$) such that:
+
+$$1 - (1 - \alpha_{\text{pc}})^m = \alpha$$
+
+Solving for $\alpha_{\text{pc}}$ yields $1 - (1 - \alpha)^{1/m}$. For small $\alpha$, this is approximated by its Taylor expansion: $\alpha_{\text{pc}} \approx \frac{\alpha}{m}$. This is the Bonferroni correction.
+
+#### 4.1.2 Holm–Bonferroni Method
+
+Bonferroni applies the exact same strict threshold to every test. The Holm-Bonferroni method is a step-down procedure that guarantees the same FWER but is uniformly more powerful because it dynamically adjusts the threshold based on the rank of the p-values.
+
+<Callout type="info" title="Derivation: FWER control under Holm–Bonferroni" collapsible defaultOpen={false}>
+
+Let $m_0$ be the unknown number of true null hypotheses among our $m$ tests. The FWER is the probability of rejecting at least one of these $m_0$ true nulls.
+
+Suppose $k$ is the index of the *first* true null hypothesis rejected. Its p-value $p_{(k)}$ must have passed the threshold:
+
+$$p_{(k)} \leq \frac{\alpha}{m - k + 1}$$
+
+Because $k$ is the first true null rejected, all previous $k - 1$ rejections must have been true effects. Therefore, the total number of true nulls $m_0$ can be at most $m - (k - 1) = m - k + 1$.
+
+Substituting this upper bound gives:
+
+$$p_{(k)} \leq \frac{\alpha}{m_0}$$
+
+By Boole's inequality, the probability that *any* of the $m_0$ true null p-values is $\leq \frac{\alpha}{m_0}$ is bounded by $m_0 \times \frac{\alpha}{m_0} = \alpha$. Thus FWER $\leq \alpha$.
+
+</Callout>
+
+<Callout type="example" title="Worked Example" collapsible defaultOpen={false}>
+
+With 5 tests at $\alpha = 0.05$ and sorted p-values $[0.001, 0.008, 0.02, 0.04, 0.08]$:
+- 1st p-value ($0.001$) vs $\frac{0.05}{5} = 0.010$. Passes $\rightarrow$ Reject $H_0$.
+- 2nd p-value ($0.008$) vs $\frac{0.05}{4} = 0.0125$. Passes $\rightarrow$ Reject $H_0$.
+- 3rd p-value ($0.02$) vs $\frac{0.05}{3} \approx 0.0167$. Fails $\rightarrow$ Stop.
+- Remaining nulls ($0.04$, $0.08$) are accepted without further testing.
+
+</Callout>
+
+**Procedure**
+1. Sort the $m$ p-values from smallest to largest: $p_{(1)} \leq p_{(2)} \leq \cdots \leq p_{(m)}$.
+2. For the $i$-th smallest p-value, reject $H_0$ if $p_{(i)} \leq \frac{\alpha}{m - i + 1}$.
+3. Stop at the first index where the condition fails, and accept all remaining null hypotheses.
+
+Because it is strictly more powerful, Holm-Bonferroni should always be preferred over standard Bonferroni.
+
+### 4.2 False Discovery Rate (FDR) Control
+
+FWER control is often too punitive. If we test 100 metrics, we may accept a few false positives, provided the *proportion* of false positives among our "wins" remains low.
+
+<Callout type="note" title="False Discovery Rate (FDR)">
+
+FDR controls the expected proportion of false positives among all rejected null hypotheses:
+
+$$\text{FDR} = E\left[\frac{\text{\# false positives}}{\text{\# total rejections}}\right]$$
+
+</Callout>
+
+Suppose we have $m$ tests, with $m_0$ true null hypotheses. If we use a rejection threshold $t$, the expected number of false positives is $m_0 \cdot t$. Let $R$ be the total number of rejections. The False Discovery Rate is approximately $\frac{m_0 \cdot t}{R}$. Conservatively bounding $m_0$ by $m$ gives:
+
+$$\text{FDR} \leq \frac{m \cdot t}{R}$$
+
+To guarantee FDR $\leq \alpha$, we set $t$ such that:
+
+$$\frac{m \cdot t}{R} \leq \alpha \implies t \leq \frac{R}{m} \alpha$$
+
+The threshold $t$ must scale linearly with the number of discoveries $R$.
+
+#### 4.2.1 Benjamini–Hochberg (BH) Procedure
+
+The BH procedure is the direct algorithmic implementation of the FDR derivation. It adaptively chooses the rejection threshold to guarantee FDR $\leq \alpha$. It achieves this by ranking the p-values and comparing them to a sliding threshold that becomes more lenient for higher-ranked (larger) p-values.
+
+<Callout type="warning" title="Assumptions of the BH Procedure">
+
+The Benjamini-Hochberg procedure requires that the tests are either independent or positively correlated (e.g., if conversion rate rises, revenue likely rises). If metrics are known to be negatively correlated, BH can fail to control the FDR, requiring more conservative adjustments (like the Benjamini-Yekutieli procedure).
+
+</Callout>
+
+<Callout type="info" title="Derivation: BH step-up procedure" collapsible defaultOpen={false}>
+
+We need threshold $t \leq \frac{R}{m} \alpha$, where $R$ is total rejections.
+
+Sort p-values $p_{(1)} \leq p_{(2)} \leq \cdots \leq p_{(m)}$. If we reject the first $k$ hypotheses, $R = k$ and the effective threshold is $t = p_{(k)}$. Substituting:
+
+$$p_{(k)} \leq \frac{k}{m} \alpha$$
+
+To maximise power, we find the *largest* $k$ satisfying this condition ($k^*$). We reject all hypotheses $1$ through $k^*$, even if some individual $p_{(i)}$ exceeds $\frac{i}{m}\alpha$. The FDR guarantee is a property of the *entire rejection set*.
+
+</Callout>
+
+**Procedure**
+1. Sort the $m$ p-values from smallest to largest: $p_{(1)} \leq p_{(2)} \leq \cdots \leq p_{(m)}$.
+2. Find the largest rank index $k^*$ where $p_{(k^*)} \leq \frac{k^*}{m} \alpha$.
+3. Reject all null hypotheses for indices $1$ through $k^*$.
+
+<Callout type="example" title="Worked Example" collapsible defaultOpen={false}>
+
+With 5 tests at $\alpha = 0.05$ and sorted p-values $[0.008, 0.025, 0.028, 0.06, 0.12]$:
+- 1st ($0.008$) vs $\frac{1}{5} \cdot 0.05 = 0.010$. Passes.
+- 2nd ($0.025$) vs $\frac{2}{5} \cdot 0.05 = 0.020$. Fails.
+- 3rd ($0.028$) vs $\frac{3}{5} \cdot 0.05 = 0.030$. Passes.
+- 4th ($0.06$) vs $\frac{4}{5} \cdot 0.05 = 0.040$. Fails.
+- 5th ($0.12$) vs $\frac{5}{5} \cdot 0.05 = 0.050$. Fails.
+
+The largest rank passing the condition is $k^* = 3$. We reject the first 3 null hypotheses, *including* the 2nd test which failed its individual check. The remaining 2 are accepted.
+
+</Callout>
+
+### 4.3 FWER vs. FDR
+
+These two frameworks are fundamentally different and serve different purposes in experimentation:
+
+- **FWER (Family-Wise Error Rate)** strictly controls the probability that *at least one* false positive occurs across all tests. Use FWER when you are making a few critical comparisons and any false positive is unacceptable (e.g., evaluating primary decision metrics to ship a feature). It provides strict control but is highly conservative.
+- **FDR (False Discovery Rate)** controls the *expected proportion* of false positives among the tests we declare significant. Use FDR when you want to make many multiple comparisons during discovery. It is vastly more powerful and is the standard choice for exploratory analysis or screening dozens of secondary metrics, where accepting a few false positives is fine as long as the majority of discoveries are real.
+
+### 4.4 Syntactic Approaches to Correction
+
+There are two mathematically equivalent ways to apply multiple testing corrections:
+
+1. **Adjust the Threshold (Decrease $\alpha$)**: Keep raw p-values, but compare against a stricter threshold (e.g., $\alpha_{\text{adjusted}} = \frac{\alpha}{m}$).
+2. **Adjust the p-value (Multiply $p$)**: Keep threshold at $\alpha = 0.05$, but multiply raw p-values by a penalty factor (e.g., $p_{\text{adjusted}} = p \cdot m$). Cap at 1.
+
+Both achieve the exact same statistical result. Adjusting the p-value is often preferred in software tools because users can continue comparing results against the familiar $0.05$ threshold without knowing the underlying correction formula.
+
+---

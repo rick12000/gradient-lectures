@@ -1,74 +1,10 @@
 ---
 title: Experimentation
-description: A structured track on A/B testing methodology — from experiment design and power analysis through to sequential testing, multiple comparisons, and network effects.
 ---
 
-import Callout from '../../../../components/Callout.astro';
+This track covers the statistical foundations and advanced techniques for running controlled experiments in tech companies.
 
-This track covers the mathematical and statistical foundations of online experimentation — the discipline behind every A/B test run at scale. It is organized as a curriculum starting from the core estimation layer and branching into the major failure modes and corrections that separate rigorous experimentation from cargo-cult statistics.
+## Sub-tracks
 
-## Track Contents
-
-### Frequentist Methods
-
-<div class="track-cards">
-  <a class="track-card" href="/gradient-lectures/tracks/experimentation/frequentist/01-power-sensitivity/">
-    <div class="track-card__number">01</div>
-    <div class="track-card__title">Power & Sensitivity</div>
-    <div class="track-card__desc">Type I/II errors, MDE, sample size derivation, and variance reduction via CUPED.</div>
-  </a>
-  <a class="track-card" href="/gradient-lectures/tracks/experimentation/frequentist/02-core-estimation/">
-    <div class="track-card__number">02</div>
-    <div class="track-card__title">Core Estimation Layer</div>
-    <div class="track-card__desc">The difference-in-means estimator, CLT, and estimation across binary, continuous, and count variables.</div>
-  </a>
-  <a class="track-card" href="/gradient-lectures/tracks/experimentation/frequentist/03-spillover-network-effects/">
-    <div class="track-card__number">03</div>
-    <div class="track-card__title">Spillover & Network Effects</div>
-    <div class="track-card__desc">SUTVA violations, interference mechanisms, and robust mitigation strategies.</div>
-  </a>
-  <a class="track-card" href="/gradient-lectures/tracks/experimentation/frequentist/04-interaction-effects/">
-    <div class="track-card__number">04</div>
-    <div class="track-card__title">Interaction Effects</div>
-    <div class="track-card__desc">Detecting and handling interference between simultaneous experiments.</div>
-  </a>
-  <a class="track-card" href="/gradient-lectures/tracks/experimentation/frequentist/05-multiple-testing/">
-    <div class="track-card__number">05</div>
-    <div class="track-card__title">Multiple Testing</div>
-    <div class="track-card__desc">FWER, FDR, Bonferroni, Holm-Bonferroni, and Benjamini-Hochberg corrections.</div>
-  </a>
-  <a class="track-card" href="/gradient-lectures/tracks/experimentation/frequentist/06-repeated-looks-peeking/">
-    <div class="track-card__number">06</div>
-    <div class="track-card__title">Repeated Looks & Peeking</div>
-    <div class="track-card__desc">Why early stopping inflates FPR, Group Sequential Testing, and always-valid inference via mSPRT.</div>
-  </a>
-  <a class="track-card" href="/gradient-lectures/tracks/experimentation/frequentist/07-normality-resampling/">
-    <div class="track-card__number">07</div>
-    <div class="track-card__title">Normality & Resampling</div>
-    <div class="track-card__desc">CLT failure modes, log transformations, permutation testing, and the block bootstrap.</div>
-  </a>
-  <a class="track-card" href="/gradient-lectures/tracks/experimentation/frequentist/08-evidence-aggregation/">
-    <div class="track-card__number">08</div>
-    <div class="track-card__title">Evidence Aggregation</div>
-    <div class="track-card__desc">Fisher's method and Stouffer's Z-score method for combining p-values across independent experiments.</div>
-  </a>
-</div>
-
-### Bayesian Methods
-
-<div class="coming-soon">
-  <span class="coming-soon__badge">Coming Soon</span>
-  <p>The Bayesian Experimentation section is currently under active development. It will cover Bayesian A/B testing frameworks, Thompson sampling, and multi-armed bandit methods.</p>
-</div>
-
-## Prerequisites
-
-- Basic statistics (means, variances, hypothesis testing concepts)
-- Familiarity with the normal distribution
-- The [Bayesian Statistics](/gradient-lectures/tracks/bayesian-statistics/) track is complementary but not required
-
-<Callout type="tip" title="Reading order">
-
-Start with **Power & Sensitivity** to understand how tests are designed, then work through **Core Estimation** to understand the fundamental statistical model. The remaining notes cover specific failure modes — you can read them in any order once you have the first two down.
-
-</Callout>
+- [Frequentist Experimentation](./frequentist-experimentation/) — the statistical core of A/B testing, from power analysis to always-valid inference
+- [Bayesian Experimentation](./bayesian-experimentation/) — coming soon

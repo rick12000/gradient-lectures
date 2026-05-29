@@ -1,6 +1,6 @@
 ---
 interface Props {
-  type?: 'note' | 'tip' | 'example' | 'warning';
+  type?: 'note' | 'tip' | 'info' | 'example' | 'warning';
   title?: string;
   collapsible?: boolean;
   defaultOpen?: boolean;
@@ -14,15 +14,17 @@ const {
 } = Astro.props;
 
 const icons: Record<string, string> = {
-  note: '📘',
-  tip: '💡',
-  example: '📝',
-  warning: '⚠️',
+  note: '◆',
+  tip: '✦',
+  info: 'ℹ',
+  example: '▸',
+  warning: '!',
 };
 
 const defaultTitles: Record<string, string> = {
   note: 'Note',
   tip: 'Tip',
+  info: 'Info',
   example: 'Example',
   warning: 'Warning',
 };
@@ -43,7 +45,7 @@ const icon = icons[type];
   </details>
 ) : (
   <div class={`callout callout--${type} callout--static`}>
-    <div class={`callout-header-static`}>
+    <div class="callout-header-static">
       <span class="callout-icon" aria-hidden="true">{icon}</span>
       <span class="callout-title">{displayTitle}</span>
     </div>

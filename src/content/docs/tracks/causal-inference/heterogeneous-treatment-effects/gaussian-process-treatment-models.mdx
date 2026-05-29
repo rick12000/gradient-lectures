@@ -1,0 +1,64 @@
+---
+title: Gaussian Process Treatment Models
+sidebar:
+  order: 5
+---
+
+import Callout from '../../../../../components/Callout.astro';
+
+## Motivation
+
+Standard machine learning approaches for estimating [Conditional Average Treatment Effects (CATE)](/tracks/causal-inference/heterogeneous-treatment-effects/introduction-and-basic-meta-learners/) provide point estimates. However, in sensitive domains like personalized medicine, understanding our *uncertainty* about a predicted treatment effect is just as critical as the prediction itself.
+
+Gaussian Process (GP) Treatment Models (e.g., Alaa & van der Schaar, 2017) utilize Bayesian non-parametrics to model the potential outcome surfaces. This approach elegantly handles non-linear confounding while natively outputting rigorous posterior distributions for both individual and average treatment effects.
+
+## The Model
+
+A Gaussian Process defines a prior over functions. In a causal setting, we define independent GPs for the two potential outcome functions:
+
+$$f_1(x) \sim \mathcal{GP}(m_1(x), k_1(x, x'))$$
+
+$$f_0(x) \sim \mathcal{GP}(m_0(x), k_0(x, x'))$$
+
+where:
+- $m_a(x)$ is the mean function (prior belief about the outcome).
+- $k_a(x, x')$ is the covariance kernel (e.g., Radial Basis Function or Matérn), which defines how strongly the outcomes of two patients correlate based on the similarity of their covariates $X$.
+
+The observed outcome is modeled as the realization of these functions plus Gaussian noise:
+
+$$Y_i \mid A_i, X_i \sim \mathcal{N}(f_{A_i}(X_i), \sigma^2)$$
+
+### Multi-Task Gaussian Processes
+
+Modeling the two potential outcomes independently (as above) is equivalent to the [T-learner](/tracks/causal-inference/heterogeneous-treatment-effects/introduction-and-basic-meta-learners/) and suffers from the exact same inefficiency when treatment groups are highly unbalanced.
+
+To allow the treated and control groups to share information, advanced GP models utilize a **Multi-Task Gaussian Process**. Instead of two separate priors, we place a joint GP prior over the vector of both potential outcomes:
+
+$$\begin{bmatrix} f_1(x) \\ f_0(x) \end{bmatrix} \sim \mathcal{GP} \left( \begin{bmatrix} m_1(x) \\ m_0(x) \end{bmatrix}, \begin{bmatrix} k_{11}(x, x') & k_{10}(x, x') \\ k_{01}(x, x') & k_{00}(x, x') \end{bmatrix} \right)$$
+
+The cross-covariance kernel $k_{10}(x, x')$ determines how strongly information learned from the control group informs predictions for the treated group, acting similarly to the shared representation layer in [TARNet](/tracks/causal-inference/heterogeneous-treatment-effects/tarnet/).
+
+## Estimating the CATE
+
+Once the model is conditioned on the observed data $\mathcal{D} = \{(X_i, A_i, Y_i)\}_{i=1}^n$, we can analytically compute the exact Bayesian posterior distribution for any new patient $x^*$.
+
+Because the joint distribution of GPs remains Gaussian, the posterior for the CATE is also perfectly Gaussian:
+
+$$\text{CATE}(x^*) \sim \mathcal{N}\left( \mu_{\text{CATE}}(x^*), \sigma^2_{\text{CATE}}(x^*) \right)$$
+
+This provides:
+1. **Point Estimate**: The posterior mean $\mu_{\text{CATE}}(x^*)$, which serves as our best guess for the individual's treatment effect.
+2. **Uncertainty Quantification**: The posterior variance $\sigma^2_{\text{CATE}}(x^*)$.
+
+## Advantages and Limitations
+
+### Advantages
+- **Native Uncertainty**: GPs provide exact analytical confidence intervals for individual predictions.
+- **Data Efficiency**: Multi-task GPs excel in small-data regimes where complex deep learning models (like [CFRNet](/tracks/causal-inference/heterogeneous-treatment-effects/cfrnet/)) severely overfit.
+- **Smoothness**: The kernel trick allows GPs to seamlessly interpolate non-linear responses and cleanly handle continuous variables without arbitrary binning.
+
+### Limitations
+- **Computational Complexity**: Standard GPs scale poorly—training takes $\mathcal{O}(n^3)$ time and inference takes $\mathcal{O}(n^2)$ time relative to the number of patients $n$. While approximations (like sparse GPs) exist, they are fundamentally less scalable than forests or neural networks for massive observational datasets.
+- **Kernel Selection**: The model's performance relies heavily on choosing an appropriate kernel that accurately reflects the true smoothness and structure of the data.
+
+---

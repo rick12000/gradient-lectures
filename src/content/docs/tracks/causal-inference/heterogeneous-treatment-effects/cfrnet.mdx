@@ -1,0 +1,79 @@
+---
+title: CFRNet
+sidebar:
+  order: 3
+---
+
+import Callout from '../../../../../components/Callout.astro';
+
+## Rationale
+
+[TARNet](/tracks/causal-inference/heterogeneous-treatment-effects/tarnet/) suffers from selection bias in observational data. If treatment groups have fundamentally different characteristics, their representations will naturally cluster in disjoint regions of the shared space. Consequently, predicting counterfactuals forces the treatment heads to extrapolate far outside their training distributions, causing errors. CFRNet (Counterfactual Regression Networks) resolves this by encouraging the shared representation space to be balanced between treated and untreated groups.
+
+## Architecture and Objective
+
+CFRNet utilizes the exact same branched architecture as TARNet, routing covariates through a shared representation layer and then into treatment-specific heads.
+
+The critical difference lies solely in the loss function. CFRNet adds a **distributional penalty term**—an Integral Probability Metric (IPM)—to the standard prediction loss. Scaled by a hyperparameter $\alpha$, this penalty measures the distance between the distribution of treated representations and control representations as they exit the shared layer $\Phi$.
+
+By penalizing this difference, the network is actively discouraged from encoding features that predict the treatment assignment. It is nudged to learn a representation that is highly predictive of the outcome $Y$, but uninformative about the treatment $A$.
+
+### The Penalty Term (IPM)
+
+The goal of the IPM is to measure the distance between the treated and untreated distributions in the representation space. The model seeks to minimize this distance alongside the factual prediction loss.
+
+<Callout type="info" title="Derivation of the Objective" collapsible defaultOpen={false}>
+
+The overall objective minimizes a weighted sum of the factual prediction loss and the distributional distance:
+
+$$\min_{h,\Phi} \frac{1}{n} \sum_{i=1}^n w_i \cdot L(h(\Phi(x_i), t_i), y_i) + \alpha \cdot \text{IPM}_G(\{\Phi(x_i)\}_{t_i=0}, \{\Phi(x_i)\}_{t_i=1})$$
+
+Where:
+- $L$ is the standard prediction loss.
+- $w_i = \frac{t_i}{2u} + \frac{1-t_i}{2(1-u)}$ are weights that compensate for differences in treatment group sizes, where $u$ is the proportion of treated units.
+- $\alpha$ is the hyperparameter controlling the strength of the balance regularization.
+- $\text{IPM}_G$ is the Integral Probability Metric over a function family $G$. Formally defined for two distributions $p$ and $q$ over a space $S$ as:
+
+  $$\text{IPM}_G(p, q) = \sup_{g \in G} \left| \int_S g(s)(p(s) - q(s)) ds \right|$$
+
+</Callout>
+
+In practice, CFRNet employs two specific IPMs that have computable empirical estimators:
+
+1. **Wasserstein Distance:** Based on the family of 1-Lipschitz functions, intuitively thought of as the "earth mover's distance"—the minimal cost to transport mass to transform the treated distribution into the control distribution.
+
+<Callout type="info" title="Wasserstein Distance (Mathematical Details)" collapsible defaultOpen={false}>
+
+The Wasserstein distance is the Integral Probability Metric when the function family $G$ is restricted to all 1-Lipschitz functions.
+
+For finite empirical samples, this reduces to an optimal transport problem. We want to find a transport matrix $M$ that minimizes the total cost to move representations from the treated group $P_1$ to the control group $P_0$:
+
+$$\text{Wass}(P_1, P_0) = \inf_{M \in \Gamma(P_1, P_0)} \sum_{i,j} M_{i,j} \cdot \| \Phi(x_{1i}) - \Phi(x_{0j}) \|_2$$
+
+Where $\Gamma(P_1, P_0)$ is the set of all valid joint distributions (transport plans) whose marginals match the empirical distributions of the treated and control representations.
+
+</Callout>
+
+2. **Maximum Mean Discrepancy (MMD):** Based on the norm-1 reproducing kernel Hilbert space (RKHS) functions, measuring the distance between the mean embeddings of the two distributions in a high-dimensional space.
+
+<Callout type="info" title="Maximum Mean Discrepancy (Mathematical Details)" collapsible defaultOpen={false}>
+
+MMD is the Integral Probability Metric when $G$ is the unit ball in a Reproducing Kernel Hilbert Space (RKHS) defined by a kernel function $k(x, y)$.
+
+A major advantage of MMD is that its empirical squared distance can be computed directly without solving an optimization problem:
+
+$$\text{MMD}^2(P_1, P_0) = \frac{1}{n_1^2} \sum_{i=1}^{n_1} \sum_{j=1}^{n_1} k(\Phi(x_{1i}), \Phi(x_{1j})) + \frac{1}{n_0^2} \sum_{i=1}^{n_0} \sum_{j=1}^{n_0} k(\Phi(x_{0i}), \Phi(x_{0j})) - \frac{2}{n_1 n_0} \sum_{i=1}^{n_1} \sum_{j=1}^{n_0} k(\Phi(x_{1i}), \Phi(x_{0j}))$$
+
+Intuitively, this measures the average kernel similarity *within* the treated group plus the similarity *within* the control group, minus the similarity *between* the two groups.
+
+</Callout>
+
+## Mechanism and Trade-offs
+
+By encouraging the treated and control distributions to overlap in the shared latent space, CFRNet creates a more balanced pseudo-population. This ensures the heads are less likely to have to extrapolate into unknown territory when predicting counterfactuals.
+
+However, tuning $\alpha$ creates a fundamental trade-off:
+- **Too small:** The model reverts to a standard TARNet, suffering from counterfactual extrapolation error due to selection bias.
+- **Too large:** The network may destroy critical predictive information in the original covariates just to force a balanced representation, degrading overall accuracy and blurring true treatment heterogeneity.
+
+---

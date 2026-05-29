@@ -1,0 +1,197 @@
+---
+title: Evidence Aggregation
+sidebar:
+  order: 8
+---
+
+import Callout from '../../../../../components/Callout.astro';
+
+Frustrated that you ran the same A/B test three times and it came *just short* of significance every time?
+
+Under the null hypothesis, p-values are uniformly distributed on $(0,1)$. If we run several back-to-back A/B tests for the same target metric, observing a sequence of p-values like $\{0.07, 0.09, 0.11\}$ is cumulatively improbable. If nothing is happening, seeing three consecutive near-misses is unlikely.
+
+Evidence aggregation methods formalise this intuition. They combine $k$ independent p-values into a single global test statistic with a known null distribution, yielding one overall p-value. Two classical procedures achieve this via different transformations: Fisher's method (logarithmic) and Stouffer's method (normal quantile).
+
+## Fisher's Method
+
+Fisher's method transforms each p-value into a chi-squared random variable. It exploits the fact that independent chi-squared variables sum to another chi-squared variable, giving a single distribution to test the aggregated evidence against.
+
+<Callout type="info" title="Derivation: Fisher's combined probability test" collapsible defaultOpen={false}>
+
+**Step 1 — Transforming the uniform p-value**
+
+Under the null hypothesis, $p_i \sim \text{Uniform}(0, 1)$. We transform this bounded uniform variable by taking the negative natural logarithm, $-\ln(p_i)$. This maps the $(0, 1)$ interval to positive numbers, where smaller p-values become larger positive values.
+
+The CDF for any positive number $x$ is:
+
+$$P(-\ln(p_i) \leq x) = P(\ln(p_i) \geq -x) = P(p_i \geq e^{-x}) = 1 - e^{-x}$$
+
+This is the exact CDF of an exponential distribution with a rate parameter of 1. Thus, $-\ln(p_i)$ is exponentially distributed.
+
+**Step 2 — Scaling to a chi-squared distribution**
+
+Fisher's method multiplies this result by 2 to create the component statistic: $-2\ln(p_i)$.
+
+Scaling an exponentially distributed variable by 2 changes its rate parameter from 1 to $1/2$. An exponential distribution with a rate of $1/2$ is mathematically identical to a chi-squared distribution with 2 degrees of freedom ($\chi^2_2$).
+
+Thus, we have transformed our uniform p-value into a standard chi-squared variable:
+
+$$-2\ln(p_i) \sim \chi^2_2$$
+
+**Step 3 — Aggregating the independent tests**
+
+Independent chi-squared variables are perfectly additive. When we sum our transformed statistics across all $k$ independent experiments, we get our final global test statistic, $\chi^2_{\text{global}}$:
+
+$$\chi^2_{\text{global}} = \sum_{i=1}^k -2\ln(p_i)$$
+
+Since we are summing $k$ independent variables that each have 2 degrees of freedom, the final statistic follows a chi-squared distribution with $2k$ degrees of freedom:
+
+$$\chi^2_{\text{global}} \sim \chi^2_{2k}$$
+
+A statistically significant result indicates that the combined evidence across all $k$ tests is too consistently extreme to have occurred by chance under the null hypothesis.
+
+</Callout>
+
+**Procedure**
+
+Let $p_i$ be the p-value from the $i$-th independent experiment.
+1. Compute $X^2 = -2\displaystyle\sum_{i=1}^k \ln(p_i)$.
+2. Evaluate the global p-value as $P(\chi^2_{2k} \geq X^2)$ using the chi-squared survival function.
+
+<Callout type="example" title="Worked Example" collapsible defaultOpen={false}>
+
+Three independent experiments test the same hypothesis and each falls just short of significance:
+
+- $p_1 = 0.07$, $p_2 = 0.09$, $p_3 = 0.11$ — all above $\alpha = 0.05$ individually.
+
+**Transform each p-value:**
+- $-2\ln(0.07) \approx 5.319$
+- $-2\ln(0.09) \approx 4.816$
+- $-2\ln(0.11) \approx 4.415$
+
+**Sum to get the test statistic:**
+- $X^2 = 5.319 + 4.816 + 4.415 = 14.549$
+
+**Evaluate against $\chi^2_{2k} = \chi^2_6$:**
+- $p_{\text{global}} = P(\chi^2_6 \geq 14.549) \approx 0.024$
+
+The global result is significant at $\alpha = 0.05$. Under the assumption that *none* of the three experiments had any real effect, observing three p-values this small or smaller would happen by random chance only about 2.4% of the time. The aggregated evidence crosses the threshold that a single experiment never reached on its own.
+
+</Callout>
+
+<Callout type="warning" title="Fisher's Vulnerability">
+
+Because $-\ln(p) \to +\infty$ as $p \to 0$, a single extreme p-value can dominate the sum and virtually guarantee significance on its own, regardless of what the other tests show. This is a strength when screening for *any* signal, but a liability when you need *consistent* evidence.
+
+</Callout>
+
+## Stouffer's Z-Score Method
+
+Stouffer's method transforms each p-value into a standard normal random variable. It exploits the fact that independent standard normals sum to another normal, giving a single standard normal statistic to test against.
+
+<Callout type="info" title="Derivation: Stouffer's Z-score method" collapsible defaultOpen={false}>
+
+**Step 1 — Mapping to a standard normal distribution**
+
+Under the null hypothesis, $p_i \sim \text{Uniform}(0, 1)$. We apply the inverse cumulative distribution function (quantile function) of the standard normal distribution, $\Phi^{-1}$.
+
+To ensure small p-values map to large *positive* Z-scores, we apply the transformation to the complement of the p-value:
+
+$$Z_i = \Phi^{-1}(1 - p_i)$$
+
+Because the uniform distribution is symmetric, $1 - p_i$ is also uniformly distributed on $(0, 1)$. Applying the inverse CDF successfully produces a standard normal variable:
+
+$$Z_i \sim N(0, 1)$$
+
+**Step 2 — Aggregating the normal variables**
+
+We sum the individual Z-scores:
+
+$$S = \sum_{i=1}^k Z_i$$
+
+The sum of independent normal variables is normally distributed. The mean of this sum is 0. Since each of our $k$ variables has a variance of 1, the total variance is $k$:
+
+$$S \sim N(0, k)$$
+
+**Step 3 — Standardising the final statistic**
+
+To convert our sum back into a standard normal distribution with a variance of 1, we divide it by its standard deviation, $\sqrt{k}$:
+
+$$Z_{\text{global}} = \frac{\sum_{i=1}^k Z_i}{\sqrt{k}} \sim N(0, 1)$$
+
+We evaluate the global p-value by checking this final Z-score against the standard normal distribution.
+
+</Callout>
+
+**Procedure**
+
+Let $p_i$ be the p-value from the $i$-th experiment, and $\Phi^{-1}$ be the inverse cumulative distribution function of the standard normal distribution.
+1. Compute $Z_i = \Phi^{-1}(1 - p_i)$ for each test.
+2. Compute $Z = \displaystyle\frac{\sum_{i=1}^k Z_i}{\sqrt{k}}$.
+3. Evaluate the global p-value as $P(N(0,1) \geq Z)$.
+
+<Callout type="example" title="Worked Example" collapsible defaultOpen={false}>
+
+Same three experiments: $p_1 = 0.07$, $p_2 = 0.09$, $p_3 = 0.11$.
+
+**Map each p-value to a Z-score:**
+- $Z_1 = \Phi^{-1}(1 - 0.07) \approx 1.476$
+- $Z_2 = \Phi^{-1}(1 - 0.09) \approx 1.341$
+- $Z_3 = \Phi^{-1}(1 - 0.11) \approx 1.227$
+
+**Sum and standardise:**
+- Sum: $1.476 + 1.341 + 1.227 = 4.043$
+- $Z = 4.043 / \sqrt{3} \approx 2.334$
+
+**Evaluate against $N(0,1)$:**
+- $p_{\text{global}} = P(N(0,1) \geq 2.334) \approx 0.010$
+
+The global result is significant at $\alpha = 0.05$. The three individual Z-scores combined into a single Z-score of $2.334$. A value this large occurs only about 1% of the time under the null.
+
+</Callout>
+
+<Callout type="note" title="Stouffer vs Fisher">
+
+Stouffer rewards directional consistency. All three experiments had to lean the same way to achieve significance. Unlike Fisher's logarithmic pull, Stouffer's mapping grows slowly as $p \to 0$. No single extreme p-value can dominate the aggregate.
+
+</Callout>
+
+### Weighted Stouffer's Method
+
+When experiments differ in sample size, treating them equally distorts the aggregate. A larger experiment is more reliable and should carry more weight.
+
+<Callout type="note" title="The Optimal Weight">
+
+To account for this, we compute a weighted sum $T = \sum_{i=1}^k w_i Z_i$. Because each $Z_i \sim N(0,1)$ is on a common standard normal scale, multiplying by a positive weight $w_i$ and summing them still yields a normal distribution (a linear scalability that Fisher's log-transform lacks).
+
+The optimal weight is derived from the precision of the underlying experiments. A sample mean from $N_i$ observations has a standard error proportional to $1/\sqrt{N_i}$, meaning its Z-score has a precision proportional to $\sqrt{N_i}$.
+
+By assigning **$w_i = \sqrt{N_i}$**, we make each experiment's contribution exactly proportional to its precision. Massive, highly powered experiments anchor the global result, while small, noisy experiments only nudge it.
+
+</Callout>
+
+<Callout type="info" title="Derivation: Standardising the Weighted Sum" collapsible defaultOpen={false}>
+
+Consider the weighted sum $T = \sum_{i=1}^k w_i Z_i$. Under the global null, each $Z_i \sim N(0,1)$, so:
+
+$$E[T] = \sum_{i=1}^k w_i \cdot E[Z_i] = 0$$
+
+The variance of $T$ uses independence and $\text{Var}(Z_i) = 1$:
+
+$$\text{Var}(T) = \sum_{i=1}^k w_i^2 \cdot \text{Var}(Z_i) = \sum_{i=1}^k w_i^2$$
+
+To standardise $T$ back to variance 1, divide by $\sqrt{\sum_i w_i^2}$:
+
+$$Z_w = \frac{\displaystyle\sum_{i=1}^k w_i Z_i}{\sqrt{\displaystyle\sum_{i=1}^k w_i^2}} \sim N(0, 1)$$
+
+The null distribution $N(0,1)$ is preserved exactly. No recalibration of critical values is needed.
+
+</Callout>
+
+<Callout type="warning" title="The Independence Assumption">
+
+The $k$ experiments must be independent. If two experiments share subjects or overlap in time, their Z-scores will be positively correlated. The denominator will underestimate the true spread, making $Z_w$ too large and inflating the false positive rate. In such cases, a correlation correction must be applied.
+
+</Callout>
+
+---

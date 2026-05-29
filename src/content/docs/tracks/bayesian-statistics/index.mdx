@@ -1,57 +1,13 @@
 ---
 title: Bayesian Statistics
-description: A structured track covering Bayesian inference from first principles through Bayesian linear regression.
 ---
 
-import Callout from '../../../../components/Callout.astro';
+This track builds Bayesian inference from first principles, starting with Bayes' rule and progressing through conjugate priors to full Bayesian linear regression.
 
-This track develops Bayesian reasoning from the ground up — beginning with the derivation of Bayes' rule and progressing through conjugate models to full Bayesian linear regression. Each note builds on the last, with dense cross-links to keep the knowledge graph tight.
+## Notes
 
-## What You'll Learn
-
-- How Bayes' rule inverts conditional probabilities to update beliefs
-- Conjugate prior families and why they produce tractable closed-form posteriors
-- How to extract point estimates and credible intervals from posterior distributions
-- The connection between Bayesian regression, ridge regression, and OLS
-- How prediction uncertainty grows with extrapolation and why
-
-## Track Contents
-
-<div class="track-cards">
-  <a class="track-card" href="/gradient-lectures/tracks/bayesian-statistics/01-bayes-rule/">
-    <div class="track-card__number">01</div>
-    <div class="track-card__title">Bayes Rule</div>
-    <div class="track-card__desc">First-principles derivation, the Law of Total Probability, and a worked disease testing example.</div>
-  </a>
-  <a class="track-card" href="/gradient-lectures/tracks/bayesian-statistics/02-beta-bernoulli/">
-    <div class="track-card__number">02</div>
-    <div class="track-card__title">Beta-Bernoulli Model</div>
-    <div class="track-card__desc">Bayesian estimation of a Bernoulli success probability using a Beta conjugate prior.</div>
-  </a>
-  <a class="track-card" href="/gradient-lectures/tracks/bayesian-statistics/03-normal-normal/">
-    <div class="track-card__number">03</div>
-    <div class="track-card__title">Normal-Normal Model</div>
-    <div class="track-card__desc">Bayesian estimation of a Gaussian mean with known variance. Derives shrinkage and precision-weighted posteriors.</div>
-  </a>
-  <a class="track-card" href="/gradient-lectures/tracks/bayesian-statistics/04-bayesian-linear-regression/">
-    <div class="track-card__number">04</div>
-    <div class="track-card__title">Bayesian Linear Regression</div>
-    <div class="track-card__desc">Single-coefficient Bayesian regression via Normal-Normal conjugacy. Posterior predictive distributions and credible intervals.</div>
-  </a>
-  <a class="track-card" href="/gradient-lectures/tracks/bayesian-statistics/05-multivariate-bayesian-lr/">
-    <div class="track-card__number">05</div>
-    <div class="track-card__title">Multivariate Bayesian LR</div>
-    <div class="track-card__desc">Full vector-valued coefficient posterior. Connections to ridge regression and OLS as limiting cases.</div>
-  </a>
-</div>
-
-## Prerequisites
-
-- Basic probability (conditional probability, independence)
-- Familiarity with Gaussian distributions is helpful but not required
-
-<Callout type="tip" title="How to use this track">
-
-Each note is self-contained but designed to be read in order. The derivations are shown explicitly inside collapsible sections — they are optional but highly recommended for building real intuition. Treat the interactive charts as calculators: adjust the sliders to develop an operational feel for how the parameters control the posterior.
-
-</Callout>
+1. [Bayes Rule](./bayes-rule/) — the foundation of Bayesian inference
+2. [Beta-Bernoulli Conjugate Prior](./beta-bernoulli-conjugate-prior/) — updating beliefs about a proportion
+3. [Normal-Normal Conjugate Prior](./normal-normal-conjugate-prior/) — updating beliefs about a mean
+4. [Bayesian Linear Regression](./bayesian-linear-regression/) — extending conjugacy to regression
+5. [Multivariate Bayesian Linear Regression](./multivariate-bayesian-linear-regression/) — the full vector-coefficient case

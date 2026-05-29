@@ -1,0 +1,258 @@
+---
+title: Multivariate Bayesian Linear Regression
+sidebar:
+  order: 5
+---
+
+import Callout from '../../../../components/Callout.astro';
+
+What happens when your outcome depends on multiple factors, and those factors are correlated? A single coefficient isn't enough anymore.
+
+This note extends [Bayesian Linear Regression](/tracks/bayesian-statistics/bayesian-linear-regression/) from a single coefficient to a full coefficient vector. It uses the same Normal-Normal conjugacy explained in [Normal-Normal Conjugate Prior](/tracks/bayesian-statistics/normal-normal-conjugate-prior/), but writes the update in matrix form so we do not have to repeat the scalar derivation.
+
+The main difference is that instead of estimating one number, we estimate several coefficients at once, and we must account for how their uncertainties interact.
+
+## The Setup
+
+Suppose we observe $n$ data points, each with $p$ predictors. For the $i$th observation, write the predictor row as a vector:
+
+$$\mathbf{x}_i = \begin{bmatrix}x_{i1} & x_{i2} & \dots & x_{ip}\end{bmatrix}^T$$
+
+The model is:
+
+$$y_i = \mathbf{x}_i^T\boldsymbol{\beta} + \epsilon_i$$
+
+where $\epsilon_i \sim \mathcal{N}(0,\sigma^2)$ and the coefficient vector is:
+
+$$\boldsymbol{\beta} = \begin{bmatrix}\beta_1 \\ \beta_2 \\ \vdots \\ \beta_p\end{bmatrix}$$
+
+Stacking all observations together gives the compact matrix form:
+
+$$\mathbf{y} = X\boldsymbol{\beta}+\boldsymbol{\epsilon}$$
+
+where $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0},\sigma^2 I_n)$.
+
+So the likelihood can be written as:
+
+$$\mathbf{y} \mid X,\boldsymbol{\beta} \sim \mathcal{N}(X\boldsymbol{\beta},\sigma^2 I_n)$$
+
+<Callout type="note" title="Including an intercept">
+
+To include an intercept, add a column of ones to $X$. For example, with two predictors and an intercept:
+
+$$\mathbf{x}_i^T = \begin{bmatrix}1 & x_{i1} & x_{i2}\end{bmatrix}$$
+
+Then the first coefficient in $\boldsymbol{\beta}$ is the intercept.
+
+</Callout>
+
+## The Prior
+
+Before seeing the data, we place a multivariate Normal prior over the full coefficient vector:
+
+$$\boldsymbol{\beta} \sim \mathcal{N}(\mathbf{m}_0, S_0)$$
+
+where $\mathbf{m}_0$ is the prior mean vector, $S_0$ is the prior covariance matrix, and $S_0^{-1}$ is the prior precision matrix.
+
+A common simple choice is an independent prior over coefficients with equal variance:
+
+$$S_0 = \tau_0^2 I_p$$
+
+This says that, before seeing data, we treat the coefficients as independent and equally uncertain.
+
+<Callout type="note" title="What covariance means here">
+
+In the single-coefficient note, the posterior uncertainty was just one variance.
+
+In the multivariate case, uncertainty is a full covariance matrix. The diagonal entries tell us how uncertain we are about each coefficient individually. The off-diagonal entries tell us whether uncertainty in one coefficient moves together with uncertainty in another coefficient.
+
+</Callout>
+
+## The Likelihood in Matrix Form
+
+Using the stacked model, the likelihood is:
+
+$$P(\mathbf{y} \mid X,\boldsymbol{\beta}) = (2\pi\sigma^2)^{-n/2} \exp\left(-\frac{1}{2\sigma^2}(\mathbf{y}-X\boldsymbol{\beta})^T(\mathbf{y}-X\boldsymbol{\beta})\right)$$
+
+The important part is the quadratic expression $(\mathbf{y}-X\boldsymbol{\beta})^T(\mathbf{y}-X\boldsymbol{\beta})$, which is the matrix version of the scalar sum of squared residuals $\sum_{i=1}^n (y_i-\beta x_i)^2$.
+
+## The Posterior
+
+Because the likelihood is Normal in $\boldsymbol{\beta}$ and the prior is multivariate Normal, the posterior is also multivariate Normal:
+
+$$\boldsymbol{\beta} \mid \mathbf{y},X \sim \mathcal{N}(\mathbf{m}_n, S_n)$$
+
+The posterior covariance is:
+
+$$S_n = \left(S_0^{-1} + \frac{1}{\sigma^2}X^TX\right)^{-1}$$
+
+Equivalently, the posterior precision is:
+
+$$S_n^{-1} = S_0^{-1} + \frac{1}{\sigma^2}X^TX$$
+
+The posterior mean is:
+
+$$\mathbf{m}_n = S_n\left(S_0^{-1}\mathbf{m}_0 + \frac{1}{\sigma^2}X^T\mathbf{y}\right)$$
+
+This is the multivariate version of the scalar update from [Bayesian Linear Regression](/tracks/bayesian-statistics/bayesian-linear-regression/).
+
+| Scalar case | Multivariate case |
+|---|---|
+| $\beta$ | $\boldsymbol{\beta}$ |
+| $\mu_0$ | $\mathbf{m}_0$ |
+| $\tau_0^2$ | $S_0$ |
+| $\sum x_i^2$ | $X^TX$ |
+| $\sum x_i y_i$ | $X^T\mathbf{y}$ |
+| $\tau_n^2$ | $S_n$ |
+| $\mu_n$ | $\mathbf{m}_n$ |
+
+### Interpreting the Posterior
+
+The same precision-addition idea still applies:
+
+> Posterior precision = prior precision + data precision.
+
+In matrix form: $S_n^{-1} = S_0^{-1} + \frac{1}{\sigma^2}X^TX$.
+
+The term $X^TX$ tells us how much information the data contain about the coefficients. If the columns of $X$ are highly correlated, some coefficient directions are weakly identified. The posterior covariance $S_n$ will reflect this by keeping more uncertainty in those directions.
+
+<Callout type="warning" title="Why this matters for correlated predictors">
+
+When two predictors move together, the data may tell us a lot about their combined effect but less about which coefficient deserves credit individually.
+
+The posterior can therefore be narrow in one direction and wide in another. This is something a one-dimensional posterior cannot represent.
+
+</Callout>
+
+## Connection to Ordinary Least Squares
+
+If the prior becomes very weak ($S_0^{-1} \to 0$), the posterior mean approaches the ordinary least squares estimate, assuming $X^TX$ is invertible:
+
+$$\mathbf{m}_n \to (X^TX)^{-1}X^T\mathbf{y}$$
+
+and the posterior covariance approaches $S_n \to \sigma^2(X^TX)^{-1}$.
+
+So ordinary least squares appears as the weak-prior limiting case of Bayesian linear regression.
+
+<Callout type="note" title="Connection to ridge regression">
+
+If $\mathbf{m}_0=\mathbf{0}$ and $S_0=\tau_0^2 I_p$, then the posterior mean becomes:
+
+$$\mathbf{m}_n = \left( X^TX + \frac{\sigma^2}{\tau_0^2}I_p \right)^{-1} X^T\mathbf{y}$$
+
+This has the same form as ridge regression. The Bayesian interpretation is that ridge regression corresponds to a zero-centered Normal prior that shrinks coefficients toward zero.
+
+</Callout>
+
+## Making Predictions
+
+For a new predictor vector $\mathbf{x}_*$, the model says $y_* = \mathbf{x}_*^T\boldsymbol{\beta}+\epsilon_*$ where $\epsilon_* \sim \mathcal{N}(0,\sigma^2)$.
+
+We average over the posterior uncertainty in $\boldsymbol{\beta}$ instead of plugging in a single coefficient estimate.
+
+### Predictive Mean
+
+$$\mathbb{E}[y_* \mid \mathbf{x}_*,\mathbf{y},X] = \mathbf{x}_*^T\mathbf{m}_n$$
+
+### Predictive Variance
+
+The predictive variance has two parts:
+1. **Coefficient uncertainty**: $\mathrm{Var}(\mathbf{x}_*^T\boldsymbol{\beta} \mid \mathbf{y},X) = \mathbf{x}_*^T S_n \mathbf{x}_*$
+2. **Observation noise**: $\mathrm{Var}(\epsilon_*) = \sigma^2$
+
+So the posterior predictive distribution is:
+
+$$y_* \mid \mathbf{x}_*,\mathbf{y},X \sim \mathcal{N}\left(\mathbf{x}_*^T\mathbf{m}_n,\ \mathbf{x}_*^T S_n \mathbf{x}_* + \sigma^2\right)$$
+
+A 95% credible interval for a future observation is:
+
+$$\mathbf{x}_*^T\mathbf{m}_n \pm 1.96\sqrt{\mathbf{x}_*^T S_n \mathbf{x}_* + \sigma^2}$$
+
+<Callout type="note" title="Credible interval for the mean response only">
+
+If we want uncertainty about the mean response rather than a future noisy observation, we exclude $\sigma^2$:
+
+$$\mathbf{x}_*^T\mathbf{m}_n \pm 1.96\sqrt{\mathbf{x}_*^T S_n \mathbf{x}_*}$$
+
+</Callout>
+
+## Why Prediction Uncertainty Depends on Direction
+
+In the single-coefficient note, prediction uncertainty grew with $x_*^2\tau_n^2$. In the multivariate case, the corresponding term is $\mathbf{x}_*^T S_n \mathbf{x}_*$.
+
+This means uncertainty depends not just on how large the new input is, but on what **direction** it points in predictor space.
+
+If $\mathbf{x}_*$ points in a direction where the training data were informative, then $\mathbf{x}_*^T S_n \mathbf{x}_*$ will be small. If it points in a poorly observed direction, the uncertainty can be much larger.
+
+## Batch Predictions
+
+If we want predictions for many new input rows at once, stack them into a new design matrix $X_*$.
+
+The mean response vector is $\mathbb{E}[\mathbf{y}_* \mid X_*,\mathbf{y},X] = X_*\mathbf{m}_n$.
+
+The joint posterior predictive distribution is:
+
+$$\mathbf{y}_* \mid X_*,\mathbf{y},X \sim \mathcal{N}\left(X_*\mathbf{m}_n,\ X_*S_nX_*^T + \sigma^2 I\right)$$
+
+<Callout type="example" title="Worked Example: Bivariate Regression" collapsible defaultOpen={false}>
+
+Suppose we have two predictors and no intercept:
+
+$$X = \begin{bmatrix}1 & 0 \\ 0 & 1 \\ 1 & 1\end{bmatrix}, \qquad \mathbf{y} = \begin{bmatrix}1.0 \\ 2.0 \\ 2.8\end{bmatrix}$$
+
+Assume known observation noise $\sigma^2 = 1$ and a weak zero-centered prior $\boldsymbol{\beta} \sim \mathcal{N}\left(\begin{bmatrix}0 \\ 0\end{bmatrix}, 4I\right)$.
+
+So $S_0^{-1} = \frac{1}{4}I = \begin{bmatrix}0.25 & 0 \\ 0 & 0.25\end{bmatrix}$.
+
+The data summary matrices are:
+
+$$X^TX = \begin{bmatrix}2 & 1 \\ 1 & 2\end{bmatrix}, \qquad X^T\mathbf{y} = \begin{bmatrix}3.8 \\ 4.8\end{bmatrix}$$
+
+The posterior precision is:
+
+$$S_n^{-1} = S_0^{-1}+X^TX = \begin{bmatrix}2.25 & 1 \\ 1 & 2.25\end{bmatrix}$$
+
+Inverting gives the posterior covariance:
+
+$$S_n \approx \begin{bmatrix}0.554 & -0.246 \\ -0.246 & 0.554\end{bmatrix}$$
+
+The posterior mean is:
+
+$$\mathbf{m}_n = S_nX^T\mathbf{y} \approx \begin{bmatrix}0.923 \\ 1.723\end{bmatrix}$$
+
+Notice the negative covariance between the two coefficients. This means that, under the posterior, if one coefficient is higher, the other tends to be lower. The data partially trade off the two coefficients against each other.
+
+Now predict at $\mathbf{x}_* = \begin{bmatrix}1 \\ 1\end{bmatrix}$:
+
+- Predictive mean: $\mathbf{x}_*^T\mathbf{m}_n = 0.923+1.723 = 2.646$
+- Coefficient uncertainty: $\mathbf{x}_*^TS_n\mathbf{x}_* \approx 0.615$
+
+So the posterior predictive distribution is $y_* \mid \mathbf{x}_*,\mathbf{y},X \sim \mathcal{N}(2.646, 1.615)$.
+
+The variance $1.615$ contains both coefficient uncertainty ($0.615$) and observation noise ($1.000$).
+
+</Callout>
+
+## Summary
+
+Multivariate Bayesian linear regression is the same conjugate update as the scalar case, but with scalars replaced by vectors and matrices.
+
+The core posterior update is $\boldsymbol{\beta} \mid \mathbf{y},X \sim \mathcal{N}(\mathbf{m}_n,S_n)$ where:
+
+$$S_n^{-1} = S_0^{-1} + \frac{1}{\sigma^2}X^TX, \qquad \mathbf{m}_n = S_n\left(S_0^{-1}\mathbf{m}_0 + \frac{1}{\sigma^2}X^T\mathbf{y}\right)$$
+
+The posterior predictive distribution for a new point is:
+
+$$y_* \mid \mathbf{x}_*,\mathbf{y},X \sim \mathcal{N}\left(\mathbf{x}_*^T\mathbf{m}_n,\ \mathbf{x}_*^T S_n \mathbf{x}_* + \sigma^2\right)$$
+
+The major conceptual upgrade from the single-coefficient case is that uncertainty is now directional. The posterior covariance matrix tells us not only how uncertain each coefficient is, but also how coefficient uncertainties trade off against each other.
+
+<Callout type="note" title="What if σ² is unknown?">
+
+This note assumes known observation variance, matching the simplifying assumption in [Bayesian Linear Regression](/tracks/bayesian-statistics/bayesian-linear-regression/) and [Normal-Normal Conjugate Prior](/tracks/bayesian-statistics/normal-normal-conjugate-prior/).
+
+If $\sigma^2$ is unknown, we need a prior over it too. A common conjugate choice is a Normal-Inverse-Gamma prior, which gives a different posterior and a Student-$t$ posterior predictive distribution.
+
+</Callout>
+
+---

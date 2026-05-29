@@ -1,0 +1,86 @@
+---
+title: Spillover and Network Effects
+sidebar:
+  order: 6
+---
+
+import Callout from '../../../../../components/Callout.astro';
+
+A foundational assumption of any classical A/B test is the **Stable Unit Treatment Value Assumption (SUTVA)**.
+
+SUTVA requires that the potential outcomes for any user are completely unaffected by the treatment assignment of any other user. If assigning User A to the Treatment group alters the behavior of User B in the Control group, SUTVA is violated.
+
+This violation is known as **Interference** or **Spillover**. It destroys the validity of the experiment because the Control group is no longer a valid counterfactual.
+
+## How Spillover Occurs
+
+Spillover typically manifests in two distinct environments, biasing results in opposite directions.
+
+### 1. Network Effects (Social Platforms)
+
+In social networks, users interact directly with each other.
+
+<Callout type="example" title="The Contagious Feature" collapsible defaultOpen={false}>
+
+- **Scenario**: A new frictionless photo-sharing feature is tested. User A (Treatment) gets the feature and sends 50% more photos to friends.
+- **The Spillover**: User B (Control) receives these extra photos. To be polite, User B replies, opening the app more frequently.
+- **The Result**: User B's engagement metrics artificially inflate. Because the Control group's baseline is dragged upward, standard A/B testing severely **underestimates** the true treatment effect.
+
+</Callout>
+
+### 2. Cannibalization (Two-Sided Marketplaces)
+
+In marketplaces (Uber, Airbnb), users compete for finite resources.
+
+<Callout type="example" title="The Greedy Algorithm" collapsible defaultOpen={false}>
+
+- **Scenario**: A new routing algorithm helps Driver A (Treatment) find rides 10% faster.
+- **The Spillover**: Because Driver A picks up more riders, the remaining pool shrinks. Driver B (Control) now struggles to find rides.
+- **The Result**: The Control group's baseline is artificially dragged downward, causing standard A/B testing to **overestimate** the true treatment effect.
+
+</Callout>
+
+## Mitigations
+
+When severe spillover is expected, standard user-level randomization is invalid. We must change the unit of randomization or employ causal inference techniques.
+
+### Clustering
+
+Instead of randomizing individual users, we identify isolated groups and randomize at the cluster level.
+
+- **Geographic/Spatial Clusters**: In a delivery marketplace, randomize entire postcodes or cities. A driver in one city cannot steal a ride from another, eliminating cannibalization.
+- **Social Network Clusters**: In social networks, construct connection graphs and use community detection algorithms to partition users into tight-knit friend clusters. Randomize entire groups together, ensuring interactions happen *within* the same treatment assignment.
+
+<Callout type="warning" title="Loss of Statistical Power">
+
+By clustering, the analysis is now randomized at the cluster level, no longer at the user level. This drastically reduces statistical power. An experiment with millions of users might only contain a few thousand clusters, significantly widening confidence intervals.
+
+</Callout>
+
+<Callout type="note" title="Causal Matching for Variance Reduction">
+
+If the number of clusters is very small (e.g., testing across 20 cities), pure randomization might fail to balance covariates, leading to bias from confounding factors.
+
+A common mitigation is to perform **Causal Matching** ahead of time. By matching clusters on pre-experiment covariates (e.g., pairing "twin cities" with similar rider activity, geographies, and distances traveled), we ensure the Treatment and Control groups are well-balanced before the test begins.
+
+</Callout>
+
+### Switchback Testing
+
+If clusters are too heterogeneous or few, we can use Switchback Testing. This involves taking a single market and randomizing **time windows** instead of users.
+
+For example, a city might run the Treatment algorithm from 1:00 PM to 1:30 PM, switch to Control from 1:30 PM to 2:00 PM, and randomly alternate throughout the week.
+
+<Callout type="warning" title="Auto-correlation and Carryover">
+
+Time windows exhibit heavy auto-correlation (a high-demand period at 1:30 PM naturally spills over into the 2:00 PM window). To estimate variance correctly, we must use Clustered Standard Errors (clustering by day or week) to account for these carryover effects.
+
+</Callout>
+
+### Causal Inference
+
+If randomization at any level is impossible (e.g., a feature must be launched globally to one specific market but not others), we must abandon A/B testing and turn to quasi-experimental [Causal Inference](/tracks/causal-inference/) methods.
+
+The goal is to construct synthetic counterfactuals based on either covariate features or time-series pre-test correlations. Methods like **Difference-in-Differences (DiD)** or **Synthetic Control** mathematically construct a baseline from untreated units that closely matched the treated unit's historical behavior, using that synthetic baseline as the valid counterfactual.
+
+---

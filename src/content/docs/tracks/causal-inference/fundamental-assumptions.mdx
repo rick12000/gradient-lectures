@@ -1,0 +1,72 @@
+---
+title: Fundamental Assumptions
+sidebar:
+  order: 1
+---
+import Callout from '../../../../components/Callout.astro';
+
+## Potential Outcomes Framework
+
+Causal inference estimates what would happen to a patient under different clinical scenarios. For a binary treatment $A \in \{0, 1\}$, a patient $i$ with observed background characteristics $X_i$ has two potential outcomes: $Y_{1i}$ if treated, and $Y_{0i}$ if untreated.
+
+The fundamental problem of causal inference is that we only observe the outcome corresponding to the treatment actually received:
+
+$$Y_i = A_i Y_{1i} + (1 - A_i) Y_{0i}$$
+
+Because the counterfactual outcome remains unobserved, we can never directly measure the Individual Treatment Effect (ITE):
+
+$$\text{ITE}_i = Y_{1i} - Y_{0i}$$
+
+## Treatment Effects
+
+Since the ITE is unobservable, we estimate averages across populations. 
+
+The **Average Treatment Effect (ATE)** measures the overall impact across all patients, smoothing out individual variations:
+
+$$\text{ATE} = \mathbb{E}[Y_1 - Y_0]$$
+
+When treatments affect subpopulations differently, we estimate the **[Conditional Average Treatment Effect](/tracks/causal-inference/heterogeneous-treatment-effects/introduction-and-basic-meta-learners/) (CATE)**. This is the expected effect for patients sharing specific characteristics $x$:
+
+$$\text{CATE}(x) = \mathbb{E}[Y_1 - Y_0 \mid X = x]$$
+
+The ATE is simply the CATE marginalized across the entire covariate distribution. Identifying these effects from observational data relies on three structural assumptions.
+
+## Identification Assumptions
+
+### 1. Consistency (SUTVA)
+
+The Stable Unit Treatment Value Assumption (SUTVA) requires:
+1. **No interference**: One patient's treatment status does not affect another patient's outcome. A vaccine study violates this because vaccinated patients create herd immunity, directly altering the infection risk for unvaccinated patients.
+2. **Well-defined treatment**: The intervention must be standardized. "Talk therapy" is a poorly defined treatment because it encompasses variable frameworks like CBT or ACT. Defining the treatment specifically as "Cognitive Behavioral Therapy" helps this assumption.
+
+### 2. Ignorability (Unconfoundedness)
+
+Given observed covariates $X$, treatment assignment is independent of potential outcomes:
+
+$$Y_1, Y_0 \perp A \mid X$$
+
+This means there is no treatment assignment bias within any specific patient subgroup. If we strictly control for $X$, the clinical decision to treat is essentially randomized. This removes confounding, ensuring that treated and untreated patients within the same subgroup have the same expected baseline outcomes:
+
+$$\mathbb{E}[Y_1 \mid A=1, X] = \mathbb{E}[Y_1 \mid A=0, X]$$
+
+This requires that every variable influencing both the treatment decision and the health outcome is measured and included in $X$. See [DAG](/tracks/causal-inference/dag/) note for examples of what to include and what not to include in X.
+
+### 3. Positivity (Overlap)
+
+Every patient profile must have a non-zero probability of receiving either the treatment or the control:
+
+$$0 < P(A = 1 \mid X = x) < 1$$
+
+If doctors always prescribe a medication to patients with a specific condition, we cannot estimate the counterfactual because no comparable untreated patients exist. [Propensity Scores](/tracks/causal-inference/propensity-scores/) near 0 or 1 flag these exact positivity violations.
+
+## Estimating Causal Effects
+
+When these three assumptions hold, causal effects become estimable from observational data using several approaches:
+
+- **[Matching Methods](/tracks/causal-inference/matching-methods/)**: Pairing similar treated and untreated patients to directly compare outcomes.
+- **[Propensity Scores](/tracks/causal-inference/propensity-scores/)**: Collapsing all patient covariates into a single probability of being treated.
+- **[Inverse Probability Weighting](/tracks/causal-inference/inverse-probability-weighting/)**: Using propensity scores to simulate a population where treatment is unconfounded.
+- **[Heterogeneous Treatment Effects](/tracks/causal-inference/heterogeneous-treatment-effects/introduction-and-basic-meta-learners/)**: Adapting machine learning to map how effects vary across different patient subpopulations.
+- **[Double Machine Learning](/tracks/causal-inference/double-machine-learning/)**: Extending binary frameworks to model continuous dosages and multiple discrete interventions.
+
+---
