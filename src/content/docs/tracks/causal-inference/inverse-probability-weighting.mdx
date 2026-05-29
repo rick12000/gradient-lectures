@@ -1,0 +1,131 @@
+﻿---
+title: Inverse Probability Weighting
+sidebar:
+  order: 5
+---
+
+import Callout from '@components/Callout.astro';
+
+## The Core Idea
+
+Rather than explicitly matching patients together, Inverse Probability Treatment Weighting (IPTW) creates a statistical "pseudo-population" where treatment assignment is completely independent of the patients' baseline characteristics.
+
+Each patient is weighted by the inverse of their [propensity score](/tracks/causal-inference/propensity-scores/) (their probability of receiving the treatment they *actually* received):
+
+$$
+w_i = \frac{A_i}{e(X_i)} + \frac{1 - A_i}{1 - e(X_i)}
+$$
+
+Intuitively, if a patient with certain characteristics was very unlikely to receive the medication but got it anyway, they are highly valuable for understanding the counterfactual. IPTW gives them a massive weight, effectively cloning them in the dataset to simulate a balanced population where the medication was assigned randomly.
+
+The IPTW estimator for the ATE is the difference in the weighted means of the outcomes:
+
+$$
+\widehat{\text{ATE}} = \frac{1}{n}\sum_{i=1}^n \frac{A_i Y_i}{e(X_i)} - \frac{1}{n}\sum_{i=1}^n \frac{(1-A_i) Y_i}{1 - e(X_i)}
+$$
+
+<Callout type="info" title="Derivation: Unbiasedness of IPTW" collapsible defaultOpen={false}>
+
+To show $\mathbb{E}\left[\frac{AY}{e(X)}\right] = \mathbb{E}[Y_1]$, we first express the observed outcome via potential outcomes. When $A=1$, $Y=Y_1$:
+
+$$
+\mathbb{E}\left[\frac{AY}{e(X)}\right] = \mathbb{E}\left[\frac{A Y_1}{e(X)}\right]
+$$
+
+Conditioning on $X$ separates the treatment assignment mechanism from the potential outcomes.
+
+$$
+= \mathbb{E}_X\left[\mathbb{E}\left[\frac{A Y_1}{e(X)} \mid X\right]\right]
+$$
+
+Because $Y_1$ and $e(X)$ are fixed given $X$, we factor them out.
+
+$$
+= \mathbb{E}_X\left[\frac{Y_1}{e(X)} \mathbb{E}[A \mid X]\right]
+$$
+
+Substituting the definition $e(X) = \mathbb{E}[A \mid X]$ cancels the denominator.
+
+$$
+= \mathbb{E}_X\left[\frac{Y_1}{e(X)} e(X)\right] = \mathbb{E}_X[Y_1]
+$$
+
+Under [ignorability](/tracks/causal-inference/fundamental-assumptions/), $Y_1$ is independent of $X$, so $\mathbb{E}_X[Y_1] = \mathbb{E}[Y_1]$.
+
+The symmetric derivation holds for control patients, yielding $\mathbb{E}[Y_0]$, proving the estimator is unbiased.
+
+</Callout>
+
+<Callout type="info" title="Exploration: Weighting vs. Matching" collapsible defaultOpen={false}>
+
+Rather than weighting, we could perform [Propensity Score Matching](/tracks/causal-inference/matching-methods/) using $e(X)$. This solves the curse of dimensionality and the arbitrary feature importance flaws of naive greedy matching.
+
+However, IPTW is frequently preferred over matching because:
+1. **Data Utilization**: Matching discards patients who don't find a pair, throwing away valuable data and subtly shifting the estimand away from the true population ATE. IPTW uses the entire dataset by simply down-weighting them.
+2. **No Arbitrary Rules**: Matching requires arbitrary methodological choices (caliper sizes, matching ratios like 1-to-1 vs 1-to-k, with or without replacement). IPTW requires no such rules; the scores directly translate to weights.
+3. **Smoothness**: Matching creates discontinuous "step-functions" (a patient is either matched or ignored). IPTW applies a smooth, continuous weight across the whole distribution.
+
+</Callout>
+
+## Doubly Robust Estimation (AIPTW)
+
+IPTW is fragile: if our model for the propensity score $e(X)$ is wrong, the weights will be wrong, and the entire ATE estimate will be biased. Augmented IPTW (AIPTW) protects against this by combining the weighting approach with a direct model of the outcome $m_a(X) = \mathbb{E}[Y \mid A=a, X]$. This "hedges our bets."
+
+The AIPTW estimator for ATE is:
+
+$$
+\widehat{\text{ATE}}^{\text{DR}} = \frac{1}{n}\sum_{i=1}^n \left[\frac{A_i(Y_i - \hat{m}_1(X_i))}{e(X_i)} + \hat{m}_1(X_i)\right] - \frac{1}{n}\sum_{i=1}^n \left[\frac{(1-A_i)(Y_i - \hat{m}_0(X_i))}{1-e(X_i)} + \hat{m}_0(X_i)\right]
+$$
+
+The estimator sums a direct outcome prediction and an inverse-probability-weighted residual (the surprise). If the outcome model is highly accurate, the residual $(Y_i - \hat{m}_a(X_i))$ is tiny, and the prediction drives the estimate. If the outcome model is poor but the propensity score $e(X)$ is correct, the properly weighted residual perfectly corrects the biased prediction.
+
+<Callout type="info" title="Derivation: Double Robustness" collapsible defaultOpen={false}>
+
+We prove consistency for the treated term $\mathbb{E}\left[\frac{A(Y - \hat{m}_1(X))}{e(X)} + \hat{m}_1(X)\right]$ under two failure modes.
+
+**Case 1: Correct propensity score, wrong outcome model**
+
+Assume $e(X)$ is true, but $\hat{m}_1(X) \neq \mathbb{E}[Y_1 \mid X]$. Expanding $Y = Y_1$ when $A=1$ and conditioning on $X$:
+
+$$
+= \mathbb{E}_X\left[\frac{1}{e(X)} \mathbb{E}[A(Y_1 - \hat{m}_1(X)) \mid X]\right] + \mathbb{E}[\hat{m}_1(X)]
+$$
+
+Factoring out terms fixed by $X$ and substituting $e(X) = \mathbb{E}[A \mid X]$:
+
+$$
+= \mathbb{E}_X\left[\frac{1}{e(X)} (Y_1 - \hat{m}_1(X)) e(X)\right] + \mathbb{E}[\hat{m}_1(X)]
+$$
+
+$$
+= \mathbb{E}[Y_1] - \mathbb{E}[\hat{m}_1(X)] + \mathbb{E}[\hat{m}_1(X)] = \mathbb{E}[Y_1]
+$$
+
+The propensity score correctly balances the populations, canceling the outcome model's bias in expectation.
+
+**Case 2: Correct outcome model, wrong propensity score**
+
+Assume $\hat{m}_1(X) = \mathbb{E}[Y_1 \mid X]$, but $e(X)$ is misspecified. Grouping terms:
+
+$$
+= \mathbb{E}\left[\frac{A(Y_1 - \hat{m}_1(X))}{e(X)}\right] + \mathbb{E}[\hat{m}_1(X)]
+$$
+
+Conditioning the first term on $X$ isolates the residual.
+
+$$
+= \mathbb{E}_X\left[\frac{1}{e(X)} \mathbb{E}[A \mid X] \mathbb{E}[Y_1 - \hat{m}_1(X) \mid X]\right] + \mathbb{E}[\hat{m}_1(X)]
+$$
+
+Because the outcome model is exact, the expected residual $\mathbb{E}[Y_1 - \hat{m}_1(X) \mid X] = 0$. The weighted term vanishes entirely.
+
+$$
+= 0 + \mathbb{E}[\mathbb{E}[Y_1 \mid X]] = \mathbb{E}[Y_1]
+$$
+
+The estimator is consistently unbiased if at least one component is correctly specified.
+
+</Callout>
+
+---
+

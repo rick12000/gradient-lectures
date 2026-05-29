@@ -1,0 +1,105 @@
+﻿---
+title: Introduction & Meta-Learners
+sidebar:
+  order: 1
+---
+
+import Callout from '@components/Callout.astro';
+
+## CATE vs ITE
+
+The [Average Treatment Effect](/tracks/causal-inference/fundamental-assumptions/) (ATE) collapses effect variation across the entire population. To target interventions to patients who benefit most, we estimate the Conditional Average Treatment Effect (CATE):
+
+$$
+\text{CATE}(x) = \mathbb{E}[Y_1 - Y_0 \mid X = x]
+$$
+
+The true Individual Treatment Effect ($\text{ITE}_i = Y_{1i} - Y_{0i}$) is unobservable because one potential outcome is always counterfactual. We can never compute the true ITE for a specific patient. However, we can *estimate* their ITE by estimating the CATE for all patients who share their exact covariate profile $X=x$.
+
+## Basic Meta-Learners
+
+### S-Learner (Single Model)
+
+Fit one single regression model predicting the outcome using both covariates $X$ and treatment status $A$:
+
+$$
+\hat{\mu}(x, a) = \mathbb{E}[Y \mid X = x, A = a]
+$$
+
+The CATE estimate is the difference in predictions when mathematically toggling the treatment status for the same patient profile:
+
+$$
+\widehat{\text{CATE}}(x) = \hat{\mu}(x, 1) - \hat{\mu}(x, 0)
+$$
+
+*Drawback*: Flexible ML models (e.g., decision trees) heavily penalize variables that don't explain much variance. If the patient's baseline characteristics $X$ are highly predictive of the outcome but the treatment $A$ has only a minor effect, the model might drop $A$ entirely. This forces the estimated treatment effect $\widehat{\text{CATE}}(x)$ to exactly zero.
+
+### T-Learner (Two Models)
+
+Fit entirely separate outcome models for treated and control patients:
+
+$$
+\hat{\mu}_1(x) = \mathbb{E}[Y \mid X = x, A = 1]
+$$
+
+$$
+\hat{\mu}_0(x) = \mathbb{E}[Y \mid X = x, A = 0]
+$$
+
+Estimate CATE as $\widehat{\text{CATE}}(x) = \hat{\mu}_1(x) - \hat{\mu}_0(x)$.
+
+*Drawback*: If one group is small (e.g., a rare experimental drug), its model will be noisy and data-starved. Because the models are entirely separate, the small group cannot borrow statistical strength or structural knowledge from the larger group.
+
+### X-Learner (Cross-Fitting)
+
+The X-learner (Künzel et al., 2019) addresses the T-learner's inefficiency in unbalanced groups by explicitly estimating the treatment effect itself using imputed counterfactuals.
+
+1. **Fit base models**: Fit $\hat{\mu}_1(x)$ and $\hat{\mu}_0(x)$ on their respective groups (same as T-learner).
+2. **Impute pseudo-effects**: Estimate the treatment effect for each patient by using the opposing model to guess their missing counterfactual outcome.
+   - Treated patients: $D^1_i = Y_{1i} - \hat{\mu}_0(X_i)$
+   - Control patients: $D^0_i = \hat{\mu}_1(X_i) - Y_{0i}$
+3. **Fit effect models**: Train a new ML model $\hat{\tau}_1(x)$ to predict $D^1$ from $X$, and $\hat{\tau}_0(x)$ to predict $D^0$ from $X$.
+4. **Combine via propensity**:
+
+$$
+\widehat{\text{CATE}}(x) = g(x)\hat{\tau}_0(x) + (1-g(x))\hat{\tau}_1(x)
+$$
+
+Where $g(x)$ is typically the [propensity score](/tracks/causal-inference/propensity-scores/) $e(x) = P(A=1 \mid X=x)$.
+
+<Callout type="info" title="Exploration: Why Propensity Weighting in X-Learner?" collapsible defaultOpen={false}>
+
+Notice the seemingly flipped weights in the final equation: the estimate from the treated group $\hat{\tau}_1(x)$ is weighted by the probability of being in the *control* group $(1-e(x))$.
+
+Why? If $e(x)$ is very small, patients with profile $x$ are rarely treated. Therefore, the control group is huge and the treated group is tiny. The control model $\hat{\tau}_0(x)$ will be highly reliable, while $\hat{\tau}_1(x)$ will be noisy. By weighting $\hat{\tau}_0(x)$ by $g(x) \approx 0$, we suppress the unreliable estimate. The X-learner naturally shifts trust toward the estimator trained on the *larger* group for any given patient profile, minimizing the variance of the final CATE estimate.
+
+</Callout>
+
+### R-Learner (Robinson Decomposition)
+
+The R-learner (Nie & Wager, 2021) isolates the pure treatment effect by mathematically stripping away the baseline influence of patient characteristics from both the outcome and the treatment assignment using the Robinson transformation.
+
+1. **Marginal models (Nuisance functions)**: Predict the conditional mean outcome $\hat{m}(X) = \mathbb{E}[Y \mid X]$ and the propensity score $\hat{e}(X) = \mathbb{E}[A \mid X]$. These are estimated using cross-fitting to prevent overfitting.
+2. **Residualize**: Subtract these expected values from what actually happened.
+   - Outcome residual: $\tilde{Y}_i = Y_i - \hat{m}(X_i)$ (The "health surprise")
+   - Treatment residual: $\tilde{A}_i = A_i - \hat{e}(X_i)$ (The "treatment surprise")
+3. **Effect regression (R-loss)**: Minimize the R-loss objective function to find $\widehat{\text{CATE}}(x)$:
+
+$$
+\widehat{\text{CATE}}(\cdot) = \arg\min_{\tau} \sum_{i=1}^n \left( \tilde{Y}_i - \tau(X_i)\tilde{A}_i \right)^2
+$$
+
+*Intuition*: By subtracting the expected baseline, we remove the confounding influence of $X$ (via the Frisch-Waugh-Lovell theorem). If a "treatment surprise" (getting treated when it was unlikely) consistently correlates with a "health surprise" (having an unusually good outcome), then the treatment *caused* the health change. This objective function targets the causal signal directly, achieving quasi-oracle convergence rates even if the nuisance models ($\hat{m}$ and $\hat{e}$) converge slowly.
+
+## Advanced HTE Architectures
+
+Basic meta-learners wrap off-the-shelf algorithms. Modern causal inference utilizes specialized architectures designed explicitly to model heterogeneity:
+
+- **[Causal Forests](/tracks/causal-inference/heterogeneous-treatment-effects/causal-forests/)**: Adapts Random Forests to split on treatment effect variance.
+- **TMLE**: A doubly-robust, semi-parametric framework.
+- **[TARNet](/tracks/causal-inference/heterogeneous-treatment-effects/tarnet/)**: A neural network that learns a shared representation layer before branching into treatment-specific heads.
+- **[CFRNet](/tracks/causal-inference/heterogeneous-treatment-effects/cfrnet/)**: Extends TARNet by actively penalizing distribution imbalance between treated and control representations using integral probability metrics (like the Wasserstein distance).
+- **[Gaussian Process Treatment Models](/tracks/causal-inference/heterogeneous-treatment-effects/gaussian-process-treatment-models/)**: Uses Bayesian non-parametrics to place priors over the response surface, yielding elegant uncertainty quantification.
+
+---
+

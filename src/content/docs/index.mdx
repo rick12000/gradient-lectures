@@ -1,0 +1,28 @@
+﻿---
+title: Gradient Lectures
+description: A free, open repository of machine learning and mathematical knowledge.
+template: splash
+draft: false
+---
+
+import { Image } from 'astro:assets';
+import fullLogo from '@assets/full_logo.png';
+import TrackCards from '@components/TrackCards.astro';
+import { withBase } from '@utils/withBase';
+
+<div class="splash-container">
+  <div class="hero-container">
+    <Image src={fullLogo} alt="Gradient Lectures" width={841} class="home-logo" />
+    <p class="hero-subtitle">A free, curated set of learning tracks and lecture notes on coding, statistics, and machine learning.</p>
+  </div>
+
+  <div class="hero-section-label">Learning Tracks</div>
+  <p class="hero-tracks-desc">Choose from a wide range of topics and start learning today.</p>
+
+  <TrackCards previewFade />
+
+  <div class="view-all-tracks">
+    <a href={withBase('/learning-tracks/')} class="gl-btn">See all learning tracks</a>
+  </div>
+</div>
+

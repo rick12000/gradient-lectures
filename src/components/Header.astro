@@ -1,0 +1,125 @@
+---
+import config from 'virtual:starlight/user-config';
+
+import Search from '@astrojs/starlight/components/Search.astro';
+import SiteTitle from '@astrojs/starlight/components/SiteTitle.astro';
+import { withBase } from '../utils/withBase';
+
+/**
+ * Render the `Search` component if Pagefind is enabled or the default search component has been overridden.
+ */
+const shouldRenderSearch =
+	config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro';
+---
+
+<div class="header">
+	<div class="title-wrapper sl-flex">
+		<SiteTitle />
+	</div>
+  <div class="nav-links-middle sl-hidden nav-links-wide-only">
+    <nav class="custom-top-nav">
+      <a href={withBase('/learning-tracks/')}>Learning Tracks</a>
+      <a href={withBase('/contribute/')}>Contribute</a>
+    </nav>
+  </div>
+	<div class="right-group sl-flex print:hidden">
+		{shouldRenderSearch && <Search />}
+	</div>
+</div>
+
+<style>
+  .nav-links-middle {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none; /* Prevents blocking clicks if it overlaps search */
+  }
+
+  /* Only show center nav when the viewport is wide enough that the absolutely-
+     positioned links cannot overlap the logo or the search bar. 64rem gives
+     comfortable clearance between the left (logo + sidebar) and right (search)
+     columns of the 3-column header grid. */
+  @media (min-width: 64rem) {
+    .nav-links-middle {
+      display: flex;
+    }
+  }
+  .custom-top-nav {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    pointer-events: auto; /* Re-enables clicks for the links */
+  }
+  .custom-top-nav a {
+    color: var(--sl-color-text);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .custom-top-nav a:hover {
+    color: var(--sl-color-accent);
+  }
+
+	@layer starlight.core {
+		.header {
+			display: flex;
+			gap: var(--sl-nav-gap);
+			justify-content: space-between;
+			align-items: center;
+			height: 100%;
+      position: relative;
+		}
+
+		.title-wrapper {
+			/* Prevent long titles overflowing and covering the search and menu buttons on narrow viewports. */
+			overflow: clip;
+			/* Avoid clipping focus ring around link inside title wrapper. */
+			padding: 0.25rem;
+			margin: -0.25rem;
+			min-width: 0;
+		}
+
+		.right-group {
+			gap: 1rem;
+			align-items: center;
+		}
+
+		@media (min-width: 50rem) {
+			:global(:root[data-has-sidebar]) {
+				--__sidebar-pad: calc(2 * var(--sl-nav-pad-x));
+			}
+			:global(:root:not([data-has-toc])) {
+				--__toc-width: 0rem;
+			}
+			.header {
+				--__sidebar-width: max(0rem, var(--sl-content-inline-start, 0rem) - var(--sl-nav-pad-x));
+				--__main-column-fr: calc(
+					(
+							100% + var(--__sidebar-pad, 0rem) - var(--__toc-width, var(--sl-sidebar-width)) -
+								(2 * var(--__toc-width, var(--sl-nav-pad-x))) - var(--sl-content-inline-start, 0rem) -
+								var(--sl-content-width)
+						) / 2
+				);
+				display: grid;
+				grid-template-columns:
+        /* 1 (site title): runs up until the main content column's left edge or the width of the title, whichever is the largest  */
+					minmax(
+						calc(var(--__sidebar-width) + max(0rem, var(--__main-column-fr) - var(--sl-nav-gap))),
+						auto
+					)
+					/* 2 (search box): all free space that is available. */
+					1fr
+					/* 3 (right items): use the space that these need. */
+					auto;
+				align-content: center;
+			}
+      .right-group {
+        justify-content: flex-end;
+      }
+		}
+	}
+</style>

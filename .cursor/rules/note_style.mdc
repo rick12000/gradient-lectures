@@ -1,0 +1,51 @@
+---
+description: Format, structure, and highlight styles for educational notes and Markdown/MDX content.
+globs: ["**/*.mdx", "**/*.md"]
+---
+
+# NOTE STYLE RULES
+Strictly adhere to these formatting structures for all notes.
+
+## 1. COLLAPSIBLE SECTIONS
+Use `<Callout>` component (`src/components/Callout.astro`).
+Import: `import Callout from '[path-to]/components/Callout.astro';`
+
+| Use Case | Component Template |
+| :--- | :--- |
+| **Worked Examples** | `<Callout type="example" title="Worked Example: [Topic]" collapsible defaultOpen={false}> ... </Callout>` |
+| **Derivations** | `<Callout type="note" title="Derivation: [Topic]" collapsible defaultOpen={false}> ... </Callout>` |
+| **Detours / Explorations** | `<Callout type="tip" title="Exploration: [Topic]" collapsible defaultOpen={false}> ... </Callout>` |
+| **Warnings** | `<Callout type="warning" title="[Title]" collapsible defaultOpen={false}> ... </Callout>` |
+
+## 2. MATH EQUATION HIGHLIGHTS
+DO NOT use KaTeX `\boxed{}`. Wrap `$$` blocks in target `<div>` classes.
+CRITICAL: Include blank lines before and after `$$` so MDX parses it as block math.
+
+### Intermediate / Important Steps
+Use `math-step` (blue border highlight).
+```mdx
+<div class="math-step">
+
+$$
+[equation]
+$$
+
+</div>
+```
+
+### Final Results / Pivotal Formulas
+Use `math-result` (gradient background + shadow + border).
+```mdx
+<div class="math-result">
+
+$$
+[equation]
+$$
+
+</div>
+```
+
+## 3. CONSTRAINTS
+- Do NOT use inline CSS.
+- Do NOT create new Callout types; use only `note`, `tip`, `example`, `warning`.
+- Math wrappers must have empty lines around `$$` blocks.

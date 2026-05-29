@@ -1,0 +1,8 @@
+---
+// Light-only site: always force light mode, prevent OS-preference switching,
+// and stub the picker API so Starlight internals do not error.
+---
+<script is:inline>
+  document.documentElement.dataset.theme = 'light';
+  window.StarlightThemeProvider = { updatePickers() {} };
+</script>
