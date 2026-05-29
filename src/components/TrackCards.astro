@@ -1,21 +1,22 @@
 ---
 import TrackCard from './TrackCard.astro';
-import { learningTracks, type LearningTrack } from '../data/tracks';
+import { trackOverviews, TRACK_ORDER, type TrackVariant, type TrackOverviewId } from '../data/trackOverviews';
 
 interface Props {
-  variants?: LearningTrack['variant'][];
-  comingSoonVariants?: LearningTrack['variant'][];
+  variants?: TrackVariant[];
+  comingSoonVariants?: TrackVariant[];
   /** Homepage: clip grid and fade the second row into the view-all link. */
   previewFade?: boolean;
 }
 
 const { variants, comingSoonVariants = [], previewFade = false } = Astro.props;
 
+const orderedTracks = TRACK_ORDER.map((id: TrackOverviewId) => trackOverviews[id]);
 const tracks = variants
   ? variants
-      .map((v) => learningTracks.find((t) => t.variant === v))
-      .filter((t): t is LearningTrack => t !== undefined)
-  : learningTracks;
+      .map((v) => orderedTracks.find((t) => t.variant === v))
+      .filter((t): t is (typeof orderedTracks)[number] => t !== undefined)
+  : orderedTracks;
 ---
 
 {previewFade ? (

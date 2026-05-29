@@ -1,16 +1,11 @@
----
+﻿---
 title: Learning Tracks
 description: The full list of available learning tracks on Gradient Lectures.
 template: splash
 draft: false
 ---
 
-import TrackCards from '../../components/TrackCards.astro';
-
-<style>{`
-  /* Hide the default Starlight page title and divider on the splash page */
-  #_top { display: none !important; }
-`}</style>
+import TrackCards from '@components/TrackCards.astro';
 
 <div class="splash-container">
   <h1 class="splash-title">Learning Tracks</h1>
@@ -18,3 +13,4 @@ import TrackCards from '../../components/TrackCards.astro';
 
   <TrackCards />
 </div>
+

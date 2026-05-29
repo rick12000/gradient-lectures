@@ -1,21 +1,17 @@
----
+﻿---
 title: Gradient Lectures
 description: A free, open repository of machine learning and mathematical knowledge.
 template: splash
 draft: false
 ---
 
-import fullLogo from '../../../src/assets/full_logo.png';
-import TrackCards from '../../components/TrackCards.astro';
-import { withBase } from '../../utils/withBase';
-
-<style>{`
-  #_top { display: none !important; }
-`}</style>
+import fullLogo from '@assets/full_logo.png';
+import TrackCards from '@components/TrackCards.astro';
+import { withBase } from '@utils/withBase';
 
 <div class="splash-container">
   <div class="hero-container">
-    <img src={fullLogo.src} alt="Gradient Lectures" class="hero-title" style={{ maxWidth: '450px', width: '100%', marginBottom: '1.25rem' }} />
+    <img src={fullLogo.src} alt="Gradient Lectures" class="home-logo" />
     <p class="hero-subtitle">A free, curated set of learning tracks and lecture notes on coding, statistics, and machine learning.</p>
   </div>
 
@@ -28,3 +24,4 @@ import { withBase } from '../../utils/withBase';
     <a href={withBase('/learning-tracks/')} class="gl-btn">See all learning tracks</a>
   </div>
 </div>
+

@@ -2,31 +2,32 @@
 import MobileMenuFooter from '@astrojs/starlight/components/MobileMenuFooter.astro';
 import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro';
 import SidebarSublist from '@astrojs/starlight/components/SidebarSublist.astro';
+import type { SidebarEntry } from '@astrojs/starlight/types';
 
 const { sidebar } = Astro.locals.starlightRoute;
 
-// Recursive function to check if a group contains the current page
-function hasCurrent(entry: any) {
-  if (entry.isCurrent) return true;
-  if (entry.type === 'group' && entry.entries) {
-    return entry.entries.some(hasCurrent);
-  }
+// Recursive check: does this entry contain the current page?
+function hasCurrent(entry: SidebarEntry): boolean {
+  if ('isCurrent' in entry && entry.isCurrent) return true;
+  if ('entries' in entry) return entry.entries.some(hasCurrent);
   return false;
 }
 
-// Find the active group (the track that contains the current page)
-let activeGroup = sidebar.find(hasCurrent);
-
-// If we found an active group, we only show its children (the track index)
-let sublistToRender = sidebar;
-if (activeGroup && activeGroup.entries) {
-  sublistToRender = activeGroup.entries;
-}
+// Show only the active track's entries in the sidebar
+const activeGroup = sidebar.find(hasCurrent);
+const sublistToRender = (activeGroup && 'entries' in activeGroup)
+  ? activeGroup.entries
+  : sidebar;
 ---
 
 <div class="sidebar-header-custom">
   <div class="sidebar-title">Track Content</div>
-  <button class="sidebar-toggle-arrow left-sidebar-toggle" title="Toggle Sidebar">
+  <button
+    class="sidebar-toggle-arrow left-sidebar-toggle"
+    aria-label="Toggle navigation sidebar"
+    aria-expanded="true"
+    aria-controls="left-sidebar-content"
+  >
     <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
       <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
       <line x1="9" y1="3" x2="9" y2="21"></line>
@@ -34,7 +35,7 @@ if (activeGroup && activeGroup.entries) {
   </button>
 </div>
 
-<div class="track-highlight-wrapper">
+<div id="left-sidebar-content" class="track-highlight-wrapper">
   <SidebarPersister>
     <SidebarSublist sublist={sublistToRender} />
   </SidebarPersister>
@@ -59,7 +60,7 @@ if (activeGroup && activeGroup.entries) {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--gl-muted);
+    color: var(--sl-color-gray-4);
   }
 
   .sidebar-toggle-arrow {
@@ -77,23 +78,48 @@ if (activeGroup && activeGroup.entries) {
 
   .sidebar-toggle-arrow:hover {
     color: var(--sl-color-text);
-    background-color: var(--gl-surface-2);
-  }
-
-  /* When sidebar is collapsed, the arrow should point right. 
-     We'll handle the rotation via global CSS based on body class */
-  :global(body.hide-left-sidebar) .left-sidebar-toggle svg {
-    /* No rotation needed for the sidebar icon */
+    background-color: var(--sl-color-gray-1);
   }
 </style>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const leftToggles = document.querySelectorAll('.left-sidebar-toggle');
+    // ── Left sidebar toggle ──────────────────────────────────
+    const leftToggles = document.querySelectorAll<HTMLButtonElement>('.left-sidebar-toggle');
     leftToggles.forEach(btn => {
       btn.addEventListener('click', () => {
-        document.body.classList.toggle('hide-left-sidebar');
+        const collapsed = document.body.classList.toggle('hide-left-sidebar');
+        btn.setAttribute('aria-expanded', String(!collapsed));
       });
     });
+
+    // ── Right sidebar toggle (collapsed by default on desktop) ─
+    if (window.matchMedia('(min-width: 72rem)').matches) {
+      document.body.classList.add('hide-right-sidebar');
+      document.querySelectorAll<HTMLButtonElement>('.right-sidebar-toggle').forEach(btn => {
+        btn.setAttribute('aria-expanded', 'false');
+      });
+    }
+    const rightToggles = document.querySelectorAll<HTMLButtonElement>('.right-sidebar-toggle');
+    rightToggles.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const collapsed = document.body.classList.toggle('hide-right-sidebar');
+        btn.setAttribute('aria-expanded', String(!collapsed));
+      });
+    });
+
+    // ── Reading progress bar (note pages only) ───────────────
+    const progressContainer = document.createElement('div');
+    progressContainer.className = 'reading-progress-container';
+    const progressBar = document.createElement('div');
+    progressBar.className = 'reading-progress-bar';
+    progressContainer.appendChild(progressBar);
+    document.body.appendChild(progressContainer);
+
+    window.addEventListener('scroll', () => {
+      const scrolled = document.documentElement.scrollTop;
+      const total = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      progressBar.style.width = total > 0 ? `${(scrolled / total) * 100}%` : '0%';
+    }, { passive: true });
   });
 </script>

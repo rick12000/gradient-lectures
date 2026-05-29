@@ -1,10 +1,10 @@
----
+﻿---
 title: Double Machine Learning
 sidebar:
   order: 6
 ---
 
-import Callout from '../../../../components/Callout.astro';
+import Callout from '@components/Callout.astro';
 
 When controlling for confounders (identified via your [DAG](/tracks/causal-inference/dag/)), the core intuition behind Double Machine Learning (DML) is simple: isolate the variation in the treatment $T$ and the outcome $Y$ that is *not* explained by the confounders $X$.
 
@@ -100,3 +100,4 @@ $$
 4. **Estimate:** Regress $\tilde{Y}$ on $\tilde{T}$ to extract the causal effect $\hat{\theta}$.
 
 ---
+

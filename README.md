@@ -29,7 +29,7 @@ Once you have the code on your machine and Node.js installed, follow these steps
 Open your terminal and navigate to the folder where this project is located. If you are using an IDE like VS Code or Cursor, you can just open the built-in terminal (usually `Ctrl + \` or `Cmd + \`).
 
 ### Step B: Install Dependencies
-The `package.json` file acts as a recipe book. It tells `npm` exactly which libraries (like Astro, Starlight, D3.js, and KaTeX) the project needs to work. 
+The `package.json` file acts as a recipe book. It tells `npm` exactly which libraries (like Astro, Starlight, KaTeX, and Mermaid) the project needs to work.
 
 To download all these ingredients, run:
 ```bash
@@ -54,12 +54,13 @@ This starts a local server. Open your web browser and go to the URL provided in 
 
 Here is where everything lives in the project:
 
+- **`public/`**: Static files served at the site root as-is. Currently contains only `favicon.svg`. Images and other processed assets belong in `src/assets/` — do not put content here.
 - **Notes & Content**: `src/content/docs/`
   - All the text is written in `.mdx` files (Markdown with extra features). You can add new folders and files here, and they will automatically become pages on the website.
 - **Styling (CSS)**: `src/styles/custom.css`
   - This is where all the colors, fonts, and layout rules are defined. We use a custom Light Mode theme.
-- **Interactive Charts**: `src/components/`
-  - Custom interactive elements (like the Power Calculator) are built here using `.astro` files and JavaScript (D3.js).
+- **Components**: `src/components/`
+  - Custom UI components are built here as `.astro` files: `Callout`, `TrackCard`, `TrackOverview`, `Pagination`, and sidebar layout components.
 - **Configuration**: `astro.config.mjs`
   - This file controls the website's title, the left sidebar navigation structure, and plugins (like math rendering). If you add a new note, you must add it to the `sidebar` array in this file for it to show up in the navigation.
 
@@ -74,7 +75,7 @@ npm run format-math
 
 ### Mermaid diagrams
 
-Notes can include diagrams with fenced `mermaid` code blocks. Rendering is handled by [`astro-mermaid`](https://www.npmjs.com/package/astro-mermaid) (configured in `astro.config.mjs`). Diagrams render client-side as SVG and follow the site light/dark theme automatically.
+Notes can include diagrams with fenced `mermaid` code blocks. Rendering is handled by [`astro-mermaid`](https://www.npmjs.com/package/astro-mermaid) (configured in `astro.config.mjs`). Diagrams render client-side as SVG using the `neutral` Mermaid theme.
 
 Example pages: **DAG** and **TARNet** in the Causal Inference track.
 

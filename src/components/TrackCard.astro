@@ -1,9 +1,9 @@
 ---
-import type { LearningTrack } from '../data/tracks';
+import type { TrackOverviewConfig } from '../data/trackOverviews';
 import { withBase } from '../utils/withBase';
 
 interface Props {
-  track: LearningTrack;
+  track: TrackOverviewConfig;
   comingSoon?: boolean;
 }
 
@@ -17,7 +17,7 @@ const Tag = comingSoon ? 'div' : 'a';
 >
   <div class="track-card__number">{track.number}</div>
   <div class="track-card__title">{track.title}</div>
-  <div class="track-card__desc">{track.description}</div>
+  <div class="track-card__desc">{track.cardDescription}</div>
   <div class="track-card__footer">
     <span class:list={['track-card__tag', `track-card__tag--${track.tag}`]}>{track.tag}</span>
     <span class="track-card__hours">

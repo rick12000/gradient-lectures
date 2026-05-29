@@ -3,14 +3,46 @@ import starlight from '@astrojs/starlight';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import mermaid from 'astro-mermaid';
+import { rehypeBaseLinks } from './scripts/rehype-base-links.mjs';
+import { trackOverviews, TRACK_ORDER } from './src/data/trackOverviews.ts';
+
+/**
+ * Build the Starlight sidebar config from trackOverviews — single source of truth.
+ * Structure: one top-level group per track, with a Track Overview link first,
+ * then flat or grouped note links matching the sections array.
+ */
+function buildSidebar() {
+  return TRACK_ORDER.map((id) => {
+    const track = trackOverviews[id];
+
+    const noteToItem = (note) => ({ label: note.title, link: note.href });
+
+    const sectionItems = track.sections.flatMap((section) => {
+      if (section.title) {
+        return [{ label: section.title, items: section.notes.map(noteToItem) }];
+      }
+      return section.notes.map(noteToItem);
+    });
+
+    return {
+      label: track.title,
+      items: [
+        { label: 'Track Overview', link: track.href },
+        ...sectionItems,
+      ],
+    };
+  });
+}
+
+const BASE = '/gradient-lectures';
 
 export default defineConfig({
   site: 'https://rick12000.github.io',
-  base: '/gradient-lectures',
+  base: BASE,
   integrations: [
     mermaid({
       theme: 'neutral',
-      autoTheme: true,
+      autoTheme: false,
     }),
     starlight({
       title: 'Gradient Lectures',
@@ -20,10 +52,16 @@ export default defineConfig({
       },
       description: 'A free, open, and deeply interconnected repository of machine learning and mathematical knowledge.',
       components: {
-        Sidebar: './src/components/Sidebar.astro',
-        PageSidebar: './src/components/PageSidebar.astro',
-        Header: './src/components/Header.astro',
-        Pagination: './src/components/Pagination.astro',
+        Sidebar:       './src/components/Sidebar.astro',
+        PageSidebar:   './src/components/PageSidebar.astro',
+        Header:        './src/components/Header.astro',
+        Pagination:    './src/components/Pagination.astro',
+        ThemeProvider: './src/components/ThemeProvider.astro',
+        ThemeSelect:   './src/components/Empty.astro',
+      },
+      expressiveCode: {
+        themes: ['starlight-light'],
+        useStarlightDarkModeSwitch: false,
       },
       customCss: [
         './src/styles/custom.css',
@@ -34,106 +72,13 @@ export default defineConfig({
         '@fontsource/jetbrains-mono/400.css',
         'katex/dist/katex.min.css',
       ],
-      sidebar: [
-        {
-          label: 'Experimentation',
-          items: [
-            { label: 'Track Overview', link: '/tracks/experimentation/' },
-            {
-              label: 'Frequentist Experimentation',
-              items: [
-                { label: 'Foundations of A/B Testing', link: '/tracks/experimentation/frequentist-experimentation/foundations-of-ab-testing/' },
-                { label: 'Power & Sensitivity', link: '/tracks/experimentation/frequentist-experimentation/power-and-sensitivity/' },
-                { label: 'Multiple Testing', link: '/tracks/experimentation/frequentist-experimentation/multiple-testing/' },
-                { label: 'Repeated Looks and Peeking', link: '/tracks/experimentation/frequentist-experimentation/repeated-looks-and-peeking/' },
-                { label: 'Normality & Resampling', link: '/tracks/experimentation/frequentist-experimentation/normality-and-resampling/' },
-                { label: 'Spillover and Network Effects', link: '/tracks/experimentation/frequentist-experimentation/spillover-and-network-effects/' },
-                { label: 'Interaction Effects', link: '/tracks/experimentation/frequentist-experimentation/interaction-effects/' },
-                { label: 'Evidence Aggregation', link: '/tracks/experimentation/frequentist-experimentation/evidence-aggregation/' },
-              ],
-            },
-            {
-              label: 'Bayesian Experimentation',
-              items: [
-                { label: 'Interpretational Bayesian A/B Testing', link: '/tracks/experimentation/bayesian-experimentation/interpretational-bayesian-experimentation/' },
-              ],
-            },
-          ],
-        },
-        {
-          label: 'Bayesian Statistics',
-          items: [
-            { label: 'Track Overview', link: '/tracks/bayesian-statistics/' },
-            { label: 'Bayes Rule', link: '/tracks/bayesian-statistics/bayes-rule/' },
-            { label: 'Beta-Bernoulli Conjugate Prior', link: '/tracks/bayesian-statistics/beta-bernoulli-conjugate-prior/' },
-            { label: 'Normal-Normal Conjugate Prior', link: '/tracks/bayesian-statistics/normal-normal-conjugate-prior/' },
-            { label: 'Bayesian Linear Regression', link: '/tracks/bayesian-statistics/bayesian-linear-regression/' },
-            { label: 'Multivariate Bayesian Linear Regression', link: '/tracks/bayesian-statistics/multivariate-bayesian-linear-regression/' },
-          ],
-        },
-        {
-          label: 'Causal Inference',
-          items: [
-            { label: 'Track Overview', link: '/tracks/causal-inference/' },
-            { label: 'Fundamental Assumptions', link: '/tracks/causal-inference/fundamental-assumptions/' },
-            { label: 'DAG', link: '/tracks/causal-inference/dag/' },
-            { label: 'Matching Methods', link: '/tracks/causal-inference/matching-methods/' },
-            { label: 'Propensity Scores', link: '/tracks/causal-inference/propensity-scores/' },
-            { label: 'Inverse Probability Weighting', link: '/tracks/causal-inference/inverse-probability-weighting/' },
-            { label: 'Double Machine Learning', link: '/tracks/causal-inference/double-machine-learning/' },
-            {
-              label: 'Heterogeneous Treatment Effects',
-              items: [
-                { label: 'Introduction & Meta-Learners', link: '/tracks/causal-inference/heterogeneous-treatment-effects/introduction-and-basic-meta-learners/' },
-                { label: 'TARNet', link: '/tracks/causal-inference/heterogeneous-treatment-effects/tarnet/' },
-                { label: 'CFRNet', link: '/tracks/causal-inference/heterogeneous-treatment-effects/cfrnet/' },
-                { label: 'Causal Forests', link: '/tracks/causal-inference/heterogeneous-treatment-effects/causal-forests/' },
-                { label: 'Gaussian Process Treatment Models', link: '/tracks/causal-inference/heterogeneous-treatment-effects/gaussian-process-treatment-models/' },
-              ],
-            },
-          ],
-        },
-      ],
-            lastUpdated: false,
+      sidebar: buildSidebar(),
+      lastUpdated: false,
       pagination: true,
-      head: [
-        {
-          tag: 'script',
-          content: `
-            document.addEventListener('DOMContentLoaded', () => {
-              // Only add progress bar on pages with a sidebar (note pages)
-              if (!document.documentElement.hasAttribute('data-has-sidebar')) return;
-
-              const progressBarContainer = document.createElement('div');
-              progressBarContainer.className = 'reading-progress-container';
-              
-              const progressBar = document.createElement('div');
-              progressBar.className = 'reading-progress-bar';
-              
-              progressBarContainer.appendChild(progressBar);
-              document.body.appendChild(progressBarContainer);
-
-              window.addEventListener('scroll', () => {
-                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-                
-                // Prevent division by zero or negative values
-                if (height <= 0) {
-                  progressBar.style.width = '0%';
-                  return;
-                }
-                
-                const scrolled = (winScroll / height) * 100;
-                progressBar.style.width = scrolled + '%';
-              });
-            });
-          `
-        }
-      ]
     }),
   ],
   markdown: {
     remarkPlugins: [remarkMath],
-    rehypePlugins: [rehypeKatex],
+    rehypePlugins: [rehypeKatex, [rehypeBaseLinks, BASE]],
   },
 });

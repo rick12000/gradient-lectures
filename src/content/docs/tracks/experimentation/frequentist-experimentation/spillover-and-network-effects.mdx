@@ -1,10 +1,10 @@
----
+﻿---
 title: Spillover and Network Effects
 sidebar:
   order: 6
 ---
 
-import Callout from '../../../../../components/Callout.astro';
+import Callout from '@components/Callout.astro';
 
 A foundational assumption of any classical A/B test is the **Stable Unit Treatment Value Assumption (SUTVA)**.
 
@@ -84,3 +84,4 @@ If randomization at any level is impossible (e.g., a feature must be launched gl
 The goal is to construct synthetic counterfactuals based on either covariate features or time-series pre-test correlations. Methods like **Difference-in-Differences (DiD)** or **Synthetic Control** mathematically construct a baseline from untreated units that closely matched the treated unit's historical behavior, using that synthetic baseline as the valid counterfactual.
 
 ---
+

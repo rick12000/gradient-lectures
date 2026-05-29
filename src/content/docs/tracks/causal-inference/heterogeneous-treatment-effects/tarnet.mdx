@@ -1,10 +1,10 @@
----
+﻿---
 title: TARNet
 sidebar:
   order: 2
 ---
 
-import Callout from '../../../../../components/Callout.astro';
+import Callout from '@components/Callout.astro';
 
 ## Rationale
 
@@ -81,3 +81,4 @@ At scale, we compute the ITE for every patient in the dataset. By sorting these 
 TARNet suffers from **selection bias** in observational data. If treated and untreated populations differ significantly, their representations in $\Phi$ will occupy completely distinct spatial regions. Predicting a counterfactual then forces a head to extrapolate far outside its training distribution. This flaw is resolved by [CFRNet](/tracks/causal-inference/heterogeneous-treatment-effects/cfrnet/).
 
 ---
+
