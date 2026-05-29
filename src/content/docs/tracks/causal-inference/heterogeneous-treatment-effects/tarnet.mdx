@@ -19,12 +19,12 @@ flowchart TD
     X1[X_1] --> Phi
     X2[X_2] --> Phi
     X3[X_3] --> Phi
-    
+
     subgraph TARNet
         Phi[Shared Representation Layer: Φ]
         H1[Treated Head: h_1]
         H0[Untreated Head: h_0]
-        
+
         Phi --> H1
         Phi --> H0
     end
@@ -49,16 +49,16 @@ flowchart TD
     X1[X_1] --> Phi
     X2[X_2] --> Phi
     X3[X_3] --> Phi
-    
+
     subgraph TARNet
         Phi[Shared Representation Layer: Φ]
         H1[Treated Head: h_1]
         H0[Untreated Head: h_0]
-        
+
         Phi --> H1
         Phi --> H0
     end
-    
+
     H1 --> L[Loss Function]
     L -.->|Backpropagate| H1
     H1 -.->|Backpropagate| Phi

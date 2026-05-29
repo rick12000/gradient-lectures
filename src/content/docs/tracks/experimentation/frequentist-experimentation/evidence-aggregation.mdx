@@ -24,7 +24,9 @@ Under the null hypothesis, $p_i \sim \text{Uniform}(0, 1)$. We transform this bo
 
 The CDF for any positive number $x$ is:
 
-$$P(-\ln(p_i) \leq x) = P(\ln(p_i) \geq -x) = P(p_i \geq e^{-x}) = 1 - e^{-x}$$
+$$
+P(-\ln(p_i) \leq x) = P(\ln(p_i) \geq -x) = P(p_i \geq e^{-x}) = 1 - e^{-x}
+$$
 
 This is the exact CDF of an exponential distribution with a rate parameter of 1. Thus, $-\ln(p_i)$ is exponentially distributed.
 
@@ -36,17 +38,23 @@ Scaling an exponentially distributed variable by 2 changes its rate parameter fr
 
 Thus, we have transformed our uniform p-value into a standard chi-squared variable:
 
-$$-2\ln(p_i) \sim \chi^2_2$$
+$$
+-2\ln(p_i) \sim \chi^2_2
+$$
 
 **Step 3 — Aggregating the independent tests**
 
 Independent chi-squared variables are perfectly additive. When we sum our transformed statistics across all $k$ independent experiments, we get our final global test statistic, $\chi^2_{\text{global}}$:
 
-$$\chi^2_{\text{global}} = \sum_{i=1}^k -2\ln(p_i)$$
+$$
+\chi^2_{\text{global}} = \sum_{i=1}^k -2\ln(p_i)
+$$
 
 Since we are summing $k$ independent variables that each have 2 degrees of freedom, the final statistic follows a chi-squared distribution with $2k$ degrees of freedom:
 
-$$\chi^2_{\text{global}} \sim \chi^2_{2k}$$
+$$
+\chi^2_{\text{global}} \sim \chi^2_{2k}
+$$
 
 A statistically significant result indicates that the combined evidence across all $k$ tests is too consistently extreme to have occurred by chance under the null hypothesis.
 
@@ -97,27 +105,37 @@ Under the null hypothesis, $p_i \sim \text{Uniform}(0, 1)$. We apply the inverse
 
 To ensure small p-values map to large *positive* Z-scores, we apply the transformation to the complement of the p-value:
 
-$$Z_i = \Phi^{-1}(1 - p_i)$$
+$$
+Z_i = \Phi^{-1}(1 - p_i)
+$$
 
 Because the uniform distribution is symmetric, $1 - p_i$ is also uniformly distributed on $(0, 1)$. Applying the inverse CDF successfully produces a standard normal variable:
 
-$$Z_i \sim N(0, 1)$$
+$$
+Z_i \sim N(0, 1)
+$$
 
 **Step 2 — Aggregating the normal variables**
 
 We sum the individual Z-scores:
 
-$$S = \sum_{i=1}^k Z_i$$
+$$
+S = \sum_{i=1}^k Z_i
+$$
 
 The sum of independent normal variables is normally distributed. The mean of this sum is 0. Since each of our $k$ variables has a variance of 1, the total variance is $k$:
 
-$$S \sim N(0, k)$$
+$$
+S \sim N(0, k)
+$$
 
 **Step 3 — Standardising the final statistic**
 
 To convert our sum back into a standard normal distribution with a variance of 1, we divide it by its standard deviation, $\sqrt{k}$:
 
-$$Z_{\text{global}} = \frac{\sum_{i=1}^k Z_i}{\sqrt{k}} \sim N(0, 1)$$
+$$
+Z_{\text{global}} = \frac{\sum_{i=1}^k Z_i}{\sqrt{k}} \sim N(0, 1)
+$$
 
 We evaluate the global p-value by checking this final Z-score against the standard normal distribution.
 
@@ -174,15 +192,21 @@ By assigning **$w_i = \sqrt{N_i}$**, we make each experiment's contribution exac
 
 Consider the weighted sum $T = \sum_{i=1}^k w_i Z_i$. Under the global null, each $Z_i \sim N(0,1)$, so:
 
-$$E[T] = \sum_{i=1}^k w_i \cdot E[Z_i] = 0$$
+$$
+E[T] = \sum_{i=1}^k w_i \cdot E[Z_i] = 0
+$$
 
 The variance of $T$ uses independence and $\text{Var}(Z_i) = 1$:
 
-$$\text{Var}(T) = \sum_{i=1}^k w_i^2 \cdot \text{Var}(Z_i) = \sum_{i=1}^k w_i^2$$
+$$
+\text{Var}(T) = \sum_{i=1}^k w_i^2 \cdot \text{Var}(Z_i) = \sum_{i=1}^k w_i^2
+$$
 
 To standardise $T$ back to variance 1, divide by $\sqrt{\sum_i w_i^2}$:
 
-$$Z_w = \frac{\displaystyle\sum_{i=1}^k w_i Z_i}{\sqrt{\displaystyle\sum_{i=1}^k w_i^2}} \sim N(0, 1)$$
+$$
+Z_w = \frac{\displaystyle\sum_{i=1}^k w_i Z_i}{\sqrt{\displaystyle\sum_{i=1}^k w_i^2}} \sim N(0, 1)
+$$
 
 The null distribution $N(0,1)$ is preserved exactly. No recalibration of critical values is needed.
 

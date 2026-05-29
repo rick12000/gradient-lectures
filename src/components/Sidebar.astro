@@ -34,12 +34,6 @@ if (activeGroup && activeGroup.entries) {
   </button>
 </div>
 
-{activeGroup && (
-  <div class="track-highlight-label">
-    <span class="track-prefix">Track:</span> <span class="track-name">{activeGroup.label}</span>
-  </div>
-)}
-
 <div class="track-highlight-wrapper">
   <SidebarPersister>
     <SidebarSublist sublist={sublistToRender} />
@@ -68,26 +62,6 @@ if (activeGroup && activeGroup.entries) {
     color: var(--gl-muted);
   }
 
-  .track-highlight-label {
-    margin-bottom: 1.5rem;
-    padding: 0.5rem 0.75rem;
-    background: var(--gl-accent-bg);
-    border-left: 3px solid var(--sl-color-accent);
-    border-radius: 0 4px 4px 0;
-    font-size: 0.95rem;
-    line-height: 1.4;
-  }
-
-  .track-prefix {
-    font-weight: 600;
-    color: var(--sl-color-text);
-  }
-
-  .track-name {
-    font-weight: 700;
-    color: var(--sl-color-accent);
-  }
-
   .sidebar-toggle-arrow {
     background: transparent;
     border: none;
@@ -102,8 +76,8 @@ if (activeGroup && activeGroup.entries) {
   }
 
   .sidebar-toggle-arrow:hover {
-    color: var(--sl-color-white);
-    background-color: var(--sl-color-gray-6);
+    color: var(--sl-color-text);
+    background-color: var(--gl-surface-2);
   }
 
   /* When sidebar is collapsed, the arrow should point right. 

@@ -18,21 +18,31 @@ Bayes' rule is derived directly from the definition of conditional probability.
 
 The conditional probability formula states that the probability of event $A$ occurring given that event $B$ has occurred is the probability of both occurring divided by the probability of $B$:
 
-$$P(A|B) = \frac{P(A \cap B)}{P(B)}$$
+$$
+P(A|B) = \frac{P(A \cap B)}{P(B)}
+$$
 
 By symmetry, the probability of $B$ given $A$ is:
 
-$$P(B|A) = \frac{P(A \cap B)}{P(A)}$$
+$$
+P(B|A) = \frac{P(A \cap B)}{P(A)}
+$$
 
 We can isolate the joint probability $P(A \cap B)$ in both equations:
 
-$$P(A \cap B) = P(A|B)P(B)$$
+$$
+P(A \cap B) = P(A|B)P(B)
+$$
 
-$$P(A \cap B) = P(B|A)P(A)$$
+$$
+P(A \cap B) = P(B|A)P(A)
+$$
 
 Since both expressions equal $P(A \cap B)$, we can set them equal to each other:
 
-$$P(A|B)P(B) = P(B|A)P(A)$$
+$$
+P(A|B)P(B) = P(B|A)P(A)
+$$
 
 Dividing both sides by $P(B)$ gives us Bayes' rule.
 
@@ -40,7 +50,9 @@ Dividing both sides by $P(B)$ gives us Bayes' rule.
 
 The resulting theorem is **Bayes' Rule**:
 
-$$P(A|B) = \frac{P(B|A)P(A)}{P(B)}$$
+$$
+P(A|B) = \frac{P(B|A)P(A)}{P(B)}
+$$
 
 This formula tells us how to invert conditional probabilities. If we know the probability of the evidence given the hypothesis $P(B|A)$, we can find the probability of the hypothesis given the evidence $P(A|B)$.
 
@@ -52,15 +64,21 @@ To make the denominator computable, we use the **Law of Total Probability**. If 
 
 The total probability of $B$ is the sum of these two mutually exclusive possibilities:
 
-$$P(B) = P(B \cap A) + P(B \cap A')$$
+$$
+P(B) = P(B \cap A) + P(B \cap A')
+$$
 
 Using the conditional probability formula, we can expand these joint probabilities:
 
-$$P(B) = P(B|A)P(A) + P(B|A')P(A')$$
+$$
+P(B) = P(B|A)P(A) + P(B|A')P(A')
+$$
 
 Substituting this expansion back into the denominator of Bayes' rule gives us the final, fully computable formulation:
 
-$$P(A|B) = \frac{P(B|A)P(A)}{P(B|A)P(A) + P(B|A')P(A')}$$
+$$
+P(A|B) = \frac{P(B|A)P(A)}{P(B|A)P(A) + P(B|A')P(A')}
+$$
 
 <Callout type="example" title="Worked Example: Rare Disease Testing" collapsible defaultOpen={false}>
 
@@ -75,17 +93,27 @@ Without Bayes' rule, one might intuitively guess the probability is around 95% o
 
 First, calculate the total probability of a positive test, $P(+)$. We need the probability of not having the disease, which is $P(D') = 1 - P(D) = 0.99$.
 
-$$P(+) = P(+|D)P(D) + P(+|D')P(D')$$
+$$
+P(+) = P(+|D)P(D) + P(+|D')P(D')
+$$
 
-$$P(+) = (0.99 \times 0.01) + (0.05 \times 0.99)$$
+$$
+P(+) = (0.99 \times 0.01) + (0.05 \times 0.99)
+$$
 
-$$P(+) = 0.0099 + 0.0495 = 0.0594$$
+$$
+P(+) = 0.0099 + 0.0495 = 0.0594
+$$
 
 Now, apply Bayes' rule:
 
-$$P(D|+) = \frac{P(+|D)P(D)}{P(+)}$$
+$$
+P(D|+) = \frac{P(+|D)P(D)}{P(+)}
+$$
 
-$$P(D|+) = \frac{0.0099}{0.0594} \approx 0.1667$$
+$$
+P(D|+) = \frac{0.0099}{0.0594} \approx 0.1667
+$$
 
 Even with a positive result on a highly sensitive test, the probability of actually having the disease is only about **16.7%**.
 

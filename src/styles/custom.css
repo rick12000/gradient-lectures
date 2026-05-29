@@ -19,11 +19,13 @@
   /* Borders */
   --sl-color-hairline:        #e4e4e7;
   --sl-color-hairline-light:  #f4f4f5;
+  --sl-color-hairline-shade:  #f0f0f2;
 
   /* Text */
   --sl-color-text:        #09090b;
-  --sl-color-white:       #09090b;
-  --sl-color-black:       #ffffff;
+  --sl-color-text-invert: #ffffff;
+  --sl-color-white:       #ffffff;
+  --sl-color-black:       #09090b;
 
   /* Accent — indigo */
   --sl-color-accent:      #4f46e5;
@@ -51,6 +53,25 @@
   --gl-chart-posterior: #6366f1;
   --gl-chart-prior:     #94a3b8;
   --gl-chart-like:      #f59e0b;
+
+  /* Vertical rhythm — single source of truth for prose spacing */
+  --gl-space-paragraph:  1rem;     /* between paragraphs */
+  --gl-space-after-title: 0.875rem; /* below page title */
+  --gl-space-section:    2rem;     /* before h2 / major section */
+  --gl-space-subsection: 1.375rem; /* before h3 */
+  --gl-space-minor:      1.125rem; /* before h4 */
+  --gl-space-block:      1.25rem;  /* callouts, figures, charts */
+  --gl-space-math:       0.875rem; /* display equations */
+  --gl-space-hr:         1.25rem;  /* horizontal rules */
+  --gl-space-list:       0.5rem;   /* between list items */
+
+  /* Prose column width — Starlight uses this to center the main content pane */
+  --sl-content-width: 74ch;
+}
+
+/* Splash / landing pages: match note column width (Starlight defaults to 67.5rem) */
+html:not([data-has-sidebar]) {
+  --sl-content-width: 74ch;
 }
 
 /* ── Dark mode tokens ────────────────────────────────────── */
@@ -72,10 +93,73 @@ body {
 
 /* ── Prose content ───────────────────────────────────────── */
 .sl-markdown-content {
+  max-width: none;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+/* Page title block — h1 carries id="_top" directly in Starlight */
+h1#_top {
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0;
+  margin-top: 0 !important;
+  color: var(--sl-color-text);
+}
+
+.content-panel:has(h1#_top) {
+  padding-top: 3rem;
+  padding-bottom: 0.625rem;
+  border-bottom: none;
+  margin-bottom: var(--gl-space-after-title);
+}
+
+/* Splash / landing: collapse the hidden Starlight title panel */
+.content-panel:has(h1#_top):has(+ .content-panel .hero-container),
+.content-panel:has(h1#_top):has(+ .content-panel .splash-container) {
+  display: none;
+}
+
+/* Splash pages — match note column width */
+.splash-container {
   max-width: 74ch;
   margin: 0 auto;
+  padding-top: 2rem;
+}
+
+.splash-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  margin-bottom: 1rem;
+  color: var(--sl-color-text);
+}
+
+.splash-desc,
+.hero-tracks-desc {
   font-size: 1rem;
-  line-height: 1.85;
+  line-height: 1.7;
+  font-weight: 400;
+  color: var(--gl-muted);
+  margin-bottom: 2rem;
+  max-width: 65ch;
+}
+
+.sl-markdown-content p.splash-desc {
+  font-size: 1rem;
+  line-height: 1.7;
+  font-weight: 400;
+  color: var(--gl-muted);
+  margin-top: 0;
+  margin-bottom: 2rem;
+  max-width: 65ch;
+}
+
+.splash-container--contribute .sl-markdown-content p.splash-desc {
+  margin-bottom: 1.25rem;
 }
 
 .sl-markdown-content h1 {
@@ -83,15 +167,22 @@ body {
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.15;
-  margin-bottom: 0.75rem;
+  margin-top: 0;
+  margin-bottom: var(--gl-space-paragraph);
   color: var(--sl-color-text);
 }
 
 .sl-markdown-content .sl-heading-wrapper.level-h2 {
-  margin-top: 3rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
+  margin-top: var(--gl-space-section);
+  margin-bottom: 0.625rem;
+  padding-bottom: 0.4rem;
   border-bottom: 1px solid var(--sl-color-hairline);
+}
+
+/* First section heading shouldn't add extra top gap right after the title */
+.sl-markdown-content > .sl-heading-wrapper.level-h2:first-child,
+.sl-markdown-content > h2:first-child {
+  margin-top: 0.25rem;
 }
 
 /* Remove default Starlight top border between content panels */
@@ -99,13 +190,8 @@ body {
   border-top: none !important;
 }
 
-/* Add a consistent divider under the main page title */
-#_top {
-  max-width: 74ch;
-  margin: 0 auto;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--sl-color-hairline);
-  margin-bottom: 1.5rem;
+.content-panel:has(h1#_top) + .content-panel {
+  padding-top: 0.75rem;
 }
 
 .sl-markdown-content h2 {
@@ -113,6 +199,8 @@ body {
   font-weight: 650;
   letter-spacing: -0.02em;
   line-height: 1.3;
+  margin-top: 0;
+  margin-bottom: 0.625rem;
   color: var(--sl-color-text);
 }
 
@@ -120,8 +208,8 @@ body {
   font-size: 1.1rem;
   font-weight: 650;
   letter-spacing: -0.01em;
-  margin-top: 2.25rem;
-  margin-bottom: 0.6rem;
+  margin-top: var(--gl-space-subsection);
+  margin-bottom: 0.5rem;
   color: var(--sl-color-text);
 }
 
@@ -130,13 +218,57 @@ body {
   font-weight: 650;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  margin-top: 1.75rem;
-  margin-bottom: 0.5rem;
+  margin-top: var(--gl-space-minor);
+  margin-bottom: 0.375rem;
   color: var(--gl-muted);
 }
 
 .sl-markdown-content p {
-  margin-bottom: 1.3rem;
+  margin-top: 0;
+  margin-bottom: var(--gl-space-paragraph);
+}
+
+/* Blank lines in MDX become empty <p> tags — hide them */
+.sl-markdown-content p:empty,
+.callout-body p:empty {
+  display: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sl-markdown-content > :first-child,
+.sl-markdown-content > .sl-heading-wrapper:first-child + * {
+  margin-top: 0;
+}
+
+.sl-markdown-content hr,
+.callout-body hr {
+  margin: var(--gl-space-hr) 0;
+  border: none;
+  border-top: 1px solid var(--sl-color-hairline);
+}
+
+.sl-markdown-content ul,
+.sl-markdown-content ol {
+  margin-top: 0;
+  margin-bottom: var(--gl-space-paragraph);
+  padding-left: 1.35rem;
+}
+
+.sl-markdown-content li {
+  margin-bottom: var(--gl-space-list);
+}
+
+.sl-markdown-content li:last-child {
+  margin-bottom: 0;
+}
+
+.sl-markdown-content li > p {
+  margin-bottom: 0.375rem;
+}
+
+.sl-markdown-content li > p:last-child {
+  margin-bottom: 0;
 }
 
 .sl-markdown-content a {
@@ -164,26 +296,71 @@ body {
   color: inherit !important;
 }
 
+.katex-display {
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+}
+
+/* Block equations — center everywhere, including inside lists and callouts */
 .sl-markdown-content .math-display,
-.sl-markdown-content .math.math-display {
+.sl-markdown-content .math.math-display,
+.sl-markdown-content .katex-display,
+.callout-body .math-display,
+.callout-body .math.math-display,
+.callout-body .katex-display,
+.sl-markdown-content li .math-display,
+.sl-markdown-content li .katex-display {
   display: block;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 0.5rem 0 1.5rem;
-  margin: 1.75rem 0;
+  overflow: visible;
+  padding: 0.25rem 0 0.625rem;
+  margin: var(--gl-space-math) auto;
   width: 100%;
+  max-width: 100%;
   text-align: center;
 }
 
-.sl-markdown-content .math-display .katex-display {
+.sl-markdown-content .math-display .katex-display,
+.sl-markdown-content .math.math-display .katex-display,
+.callout-body .math-display .katex-display {
   display: block;
   margin: 0 auto !important;
   text-align: center !important;
 }
 
-.sl-markdown-content .katex-display > .katex {
+.sl-markdown-content .katex-display > .katex,
+.callout-body .katex-display > .katex {
   display: inline-block;
   text-align: center !important;
+}
+
+/* Paragraphs that only wrap display math should not force left alignment */
+.sl-markdown-content p:has(> .katex-display),
+.sl-markdown-content p:has(> .math-display),
+.callout-body p:has(> .katex-display),
+.callout-body p:has(> .math-display) {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Display math inside list items — center the equation block */
+.sl-markdown-content li:has(.katex-display),
+.sl-markdown-content li:has(.math-display),
+.sl-markdown-content li:has(.math.math-display),
+.callout-body li:has(.katex-display),
+.callout-body li:has(.math-display) {
+  list-style-position: inside;
+  text-align: center;
+}
+
+.sl-markdown-content li > p:only-child:has(.katex-display),
+.sl-markdown-content li > p:only-child:has(.math-display),
+.callout-body li > p:only-child:has(.katex-display),
+.callout-body li > p:only-child:has(.math-display) {
+  display: flex;
+  justify-content: center;
+  margin: var(--gl-space-math) auto;
 }
 
 .sl-markdown-content .math-inline .katex {
@@ -272,8 +449,8 @@ body {
 }
 
 /* ── Tables ──────────────────────────────────────────────── */
-.sl-markdown-content table {
-  width: 100%;
+.sl-markdown-content table,
+.callout-body table {
   border-collapse: collapse;
   font-size: 0.9rem;
   margin: 2rem 0;
@@ -282,7 +459,8 @@ body {
   border: 1px solid var(--sl-color-hairline);
 }
 
-.sl-markdown-content th {
+.sl-markdown-content th,
+.callout-body th {
   text-align: left;
   padding: 0.65rem 1rem;
   background: var(--gl-surface-2);
@@ -294,28 +472,46 @@ body {
   color: var(--gl-muted);
 }
 
-.sl-markdown-content td {
+.sl-markdown-content td,
+.callout-body td {
   padding: 0.65rem 1rem;
   border-bottom: 1px solid var(--sl-color-hairline);
   vertical-align: top;
   line-height: 1.6;
 }
 
-.sl-markdown-content tr:last-child td {
+.sl-markdown-content tr:last-child td,
+.callout-body tr:last-child td {
   border-bottom: none;
 }
 
-.sl-markdown-content tbody tr:hover td {
+.sl-markdown-content tbody tr:hover td,
+.callout-body tbody tr:hover td {
   background: var(--gl-surface);
   transition: background 0.1s ease;
 }
 
+/*
+ * Starlight sets prose tables to display:block (for horizontal scroll), which
+ * stretches the table box to full column width and leaves empty space inside
+ * the border. Restore table layout and shrink-wrap to content width.
+ * html prefix beats Starlight's bundled rule, which loads after custom.css.
+ */
+html .sl-markdown-content table:not(:where(.not-content *)),
+html .callout-body table {
+  display: table;
+  width: max-content;
+  max-width: 100%;
+}
+
 /* ── Figure / image captions ─────────────────────────────── */
-.sl-markdown-content figure {
+.sl-markdown-content figure,
+.callout-body figure {
   margin: 2.5rem 0;
 }
 
-.sl-markdown-content figcaption {
+.sl-markdown-content figcaption,
+.callout-body figcaption {
   font-size: 0.83rem;
   color: var(--gl-muted);
   text-align: center;
@@ -324,15 +520,120 @@ body {
   font-style: italic;
 }
 
-.sl-markdown-content img {
+/*
+ * Callout slots use not-content, so Starlight excludes them from its responsive
+ * media rule (max-width + height:auto). Mirror that behavior for callout media.
+ */
+.sl-markdown-content img,
+.callout-body img {
   border-radius: 8px;
   border: 1px solid var(--sl-color-hairline);
-  max-width: 100%;
   display: block;
+  max-width: 100%;
+  width: auto;
+  height: auto;
   margin: 0 auto;
 }
 
+.callout-body :is(picture, video, canvas, svg, iframe) {
+  display: block;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+}
+
+.callout-body picture img {
+  border-radius: 8px;
+  border: 1px solid var(--sl-color-hairline);
+}
+
+/* Paragraph wrappers from markdown — drop extra gap around lone images */
+.sl-markdown-content p:has(> img:only-child),
+.callout-body p:has(> img:only-child),
+.sl-markdown-content p:has(> picture:only-child),
+.callout-body p:has(> picture:only-child) {
+  margin: var(--gl-space-block) 0;
+}
+
+/* ── Mermaid diagrams ────────────────────────────────────── */
+.sl-markdown-content pre.mermaid,
+.sl-markdown-content .mermaid {
+  margin: var(--gl-space-block) auto;
+  padding: 1.25rem;
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: 12px;
+  background: var(--gl-surface);
+  overflow-x: auto;
+  text-align: center;
+  font-family: var(--sl-font);
+  white-space: pre-wrap;
+}
+
+.sl-markdown-content pre.mermaid code,
+.sl-markdown-content pre.mermaid .expressive-code {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.sl-markdown-content pre.mermaid svg,
+.sl-markdown-content .mermaid svg {
+  max-width: 100%;
+  height: auto;
+  display: inline-block;
+}
+
+/* Hide raw diagram source until client-side Mermaid renders SVG */
+.sl-markdown-content pre.mermaid:not([data-processed]) {
+  color: transparent;
+  caret-color: transparent;
+}
+
+.sl-markdown-content pre.mermaid[data-processed='true'],
+.sl-markdown-content pre.mermaid:has(svg) {
+  white-space: normal;
+  font-size: 0;
+  line-height: 0;
+  color: transparent;
+}
+
+.sl-markdown-content pre.mermaid:has(svg) svg {
+  font-size: initial;
+  line-height: initial;
+}
+
 /* ── Callout component ───────────────────────────────────── */
+/* Exclude callouts from Starlight's default <details>/<summary> chevron */
+.sl-markdown-content details.callout {
+  border-inline-start: none !important;
+  padding-inline-start: 0 !important;
+}
+
+.sl-markdown-content details.callout > summary,
+.sl-markdown-content .callout summary {
+  color: inherit !important;
+  margin-inline-start: 0 !important;
+  margin-bottom: 0 !important;
+  display: flex !important;
+}
+
+.sl-markdown-content details.callout[open] > summary,
+.sl-markdown-content details.callout > summary {
+  margin-bottom: 0 !important;
+}
+
+.sl-markdown-content .callout summary::before,
+.sl-markdown-content details.callout summary::before {
+  display: none !important;
+  content: none !important;
+  mask: none !important;
+  -webkit-mask: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+}
+
 .callout {
   --callout-accent: #6366f1;
   --callout-bg: rgba(99, 102, 241, 0.06);
@@ -340,7 +641,7 @@ body {
   --callout-icon-bg: rgba(99, 102, 241, 0.14);
   --callout-icon-fg: #4338ca;
 
-  margin: 1.75rem 0;
+  margin: var(--gl-space-block) 0;
   border-radius: 12px;
   border: 1px solid var(--callout-border);
   background:
@@ -369,7 +670,7 @@ body {
 .callout-header-static {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
   padding: 0.95rem 1.15rem 0.95rem 1.25rem;
   font-weight: 650;
   font-size: 0.92rem;
@@ -384,21 +685,6 @@ body {
 .callout summary::-webkit-details-marker { display: none; }
 .callout summary::marker { display: none; }
 .callout summary:hover { background: rgba(255, 255, 255, 0.45); }
-
-.callout summary::before {
-  content: '';
-  width: 0.45rem;
-  height: 0.45rem;
-  border-right: 1.5px solid var(--callout-icon-fg);
-  border-bottom: 1.5px solid var(--callout-icon-fg);
-  transform: rotate(-45deg);
-  transition: transform 0.2s ease;
-  flex-shrink: 0;
-  opacity: 0.75;
-  margin-left: 0.1rem;
-}
-
-.callout[open] summary::before { transform: rotate(45deg); }
 
 .callout-body {
   padding: 0 1.15rem 1.15rem 1.25rem;
@@ -415,20 +701,62 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.65rem;
-  height: 1.65rem;
-  border-radius: 8px;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 10px;
   background: var(--callout-icon-bg);
   color: var(--callout-icon-fg);
-  font-size: 0.72rem;
-  font-weight: 800;
   flex-shrink: 0;
   line-height: 1;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
+.callout-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: block;
+}
+
 .callout-title {
   flex: 1;
+  min-width: 0;
+}
+
+.callout-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 8px;
+  color: var(--callout-icon-fg);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--callout-border);
+  flex-shrink: 0;
+  margin-left: 0.25rem;
+  transition: transform 0.22s ease, background 0.15s ease;
+}
+
+.callout-chevron svg {
+  width: 1rem;
+  height: 1rem;
+  display: block;
+}
+
+.callout[open] .callout-chevron {
+  transform: rotate(180deg);
+  background: var(--callout-icon-bg);
+}
+
+/* Text selection — visible contrast (callouts, prose, sidebar) */
+::selection {
+  background: #c7d2fe;
+  color: #1e1b4b;
+}
+
+::-moz-selection {
+  background: #c7d2fe;
+  color: #1e1b4b;
 }
 
 /* Note — indigo */
@@ -676,7 +1004,8 @@ body {
 }
 
 .track-card {
-  display: block;
+  display: flex;
+  flex-direction: column;
   padding: 1.35rem 1.5rem;
   border: 1px solid var(--sl-color-hairline);
   border-radius: 12px;
@@ -685,6 +1014,7 @@ body {
   background: var(--sl-color-bg-nav);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
   cursor: pointer;
+  min-height: 100%;
 }
 
 .track-card * {
@@ -707,27 +1037,6 @@ body {
   -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
 }
 
-.view-all-tracks {
-  text-align: center;
-  margin-top: 1rem;
-  margin-bottom: 4rem;
-}
-
-.view-all-tracks a {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--sl-color-text-accent);
-  text-decoration: none;
-  transition: opacity 0.2s ease;
-}
-
-.view-all-tracks a:hover {
-  opacity: 0.8;
-  text-decoration: underline;
-}
-
-
-
 .track-card:active { transform: translateY(0); }
 
 .track-card__number {
@@ -742,7 +1051,7 @@ body {
 .track-card__title {
   font-size: 1rem;
   font-weight: 650;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
   color: var(--sl-color-text);
   letter-spacing: -0.01em;
 }
@@ -751,6 +1060,288 @@ body {
   font-size: 0.84rem;
   color: var(--gl-muted);
   line-height: 1.55;
+  flex: 1;
+}
+
+.track-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+
+.track-card__hours {
+  font-size: 0.82rem;
+  color: var(--sl-color-text);
+  margin: 0;
+  margin-left: auto;
+  line-height: 1.2;
+  text-align: right;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.track-card__hours strong {
+  font-weight: 700;
+}
+
+.track-card__footer .track-card__tag {
+  display: inline-block;
+  flex-shrink: 0;
+  margin-right: auto;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+  padding: 0.28rem 0.6rem;
+  border-radius: 6px;
+  line-height: 1.2;
+}
+
+/* Tag colors by label (same tag = same color across tiles) */
+.track-card__tag--theory {
+  background: var(--gl-accent-bg);
+  color: var(--sl-color-accent-high);
+}
+
+/* Homepage: fade second row of track tiles into view-all link */
+.track-cards-preview {
+  position: relative;
+  margin: 2rem 0 0;
+}
+
+.track-cards-preview .track-cards {
+  max-height: 21.5rem;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.track-cards-preview::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 11rem;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.65) 35%,
+    var(--sl-color-bg) 88%
+  );
+  pointer-events: none;
+}
+
+.view-all-tracks {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin-top: -4rem;
+  margin-bottom: 4rem;
+}
+
+/* ── Glass button (home + contribute) ────────────────────── */
+.gl-btn {
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.5rem 1.125rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  text-decoration: none !important;
+  cursor: pointer;
+  color: #0369a1 !important;
+  background: rgba(224, 242, 254, 0.42);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(125, 211, 252, 0.55);
+  box-shadow:
+    0 1px 2px rgba(14, 116, 144, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  transition:
+    background 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    transform 0.18s ease,
+    color 0.22s ease;
+}
+
+.gl-btn:hover {
+  color: #0c4a6e !important;
+  background: rgba(186, 230, 253, 0.58);
+  border-color: rgba(56, 189, 248, 0.72);
+  box-shadow:
+    0 6px 20px rgba(14, 116, 144, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  transform: translateY(-1px);
+  text-decoration: none !important;
+}
+
+.gl-btn:active {
+  transform: translateY(0);
+  box-shadow:
+    0 1px 4px rgba(14, 116, 144, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.gl-btn:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.75);
+  outline-offset: 3px;
+}
+
+.splash-action {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.splash-container--contribute .splash-desc {
+  margin-bottom: 1.25rem;
+}
+
+.splash-container--contribute .gl-btn {
+  margin-top: 0;
+}
+
+/* ── Track overview landing pages ────────────────────────── */
+.track-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.track-overview__hours {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  align-self: flex-start;
+  margin: 0;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(79, 70, 229, 0.14);
+  background: rgba(238, 242, 255, 0.55);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--sl-color-accent-high);
+  line-height: 1.2;
+}
+
+.track-overview__hours-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+  color: var(--sl-color-accent);
+  opacity: 0.9;
+}
+
+.track-overview__summary {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--sl-color-text);
+  max-width: 68ch;
+}
+
+.track-overview__content {
+  margin-top: 0.5rem;
+}
+
+.track-overview__content-heading {
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 0 0 1.25rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--sl-color-hairline);
+  color: var(--sl-color-text);
+}
+
+.track-overview__section + .track-overview__section {
+  margin-top: 2rem;
+}
+
+.track-overview__section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sl-color-accent-high);
+  margin: 0 0 0.875rem;
+}
+
+.track-overview__notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+
+.track-overview__note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 1.125rem 1.25rem;
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: 12px;
+  text-decoration: none !important;
+  color: inherit;
+  background: var(--sl-color-bg);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+  position: relative;
+}
+
+a.track-overview__note:hover {
+  border-color: var(--sl-color-accent);
+  background: var(--gl-accent-bg);
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.08);
+  transform: translateY(-1px);
+}
+
+.track-overview__note--soon {
+  opacity: 0.72;
+  cursor: default;
+  pointer-events: none;
+}
+
+.track-overview__note-title {
+  font-size: 0.98rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--sl-color-text);
+  line-height: 1.35;
+}
+
+.track-overview__note-desc {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--gl-muted);
+}
+
+.track-overview__note-badge {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 99px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #4338ca;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.coming-soon__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
 }
 
 /* ── Hero / landing page ─────────────────────────────────── */
@@ -778,13 +1369,6 @@ body {
   color: var(--gl-muted);
   max-width: 52ch;
   margin-bottom: 1rem;
-}
-
-.hero-tracks-desc {
-  font-size: 1rem;
-  color: var(--gl-muted);
-  margin-bottom: 2rem;
-  max-width: 65ch;
 }
 
 .hero-divider {
@@ -841,19 +1425,56 @@ body {
 }
 
 /* ── Sidebar customization ───────────────────────────────── */
+.header {
+  border-bottom-color: var(--sl-color-hairline-shade) !important;
+}
+
 .sidebar-pane {
   border-right: 1px solid var(--sl-color-hairline);
 }
 
 .sidebar-pane a {
   color: var(--sl-color-gray-5) !important;
+  border-radius: 6px;
 }
-.sidebar-pane a[aria-current="page"] {
+
+.sidebar-pane a[aria-current="page"],
+.sidebar-pane a[aria-current="page"]:hover,
+.sidebar-pane a[aria-current="page"]:focus {
   color: var(--sl-color-text-accent) !important;
+  background-color: var(--gl-accent-bg) !important;
   font-weight: 600;
 }
-.sidebar-pane a:hover {
+
+.sidebar-pane a:hover,
+.sidebar-pane a:focus {
   color: var(--sl-color-text) !important;
+  background-color: var(--gl-surface-2);
+}
+
+/* Folder/group labels use Starlight's .large class (defaults to white — wrong on light bg) */
+.track-highlight-wrapper .large,
+.sidebar-pane summary .large {
+  color: var(--sl-color-gray-5) !important;
+  font-weight: 600;
+}
+
+.track-highlight-wrapper summary {
+  color: var(--sl-color-gray-5);
+}
+
+.track-highlight-wrapper summary:hover .large,
+.track-highlight-wrapper summary:focus .large {
+  color: var(--sl-color-text) !important;
+}
+
+/* Top-level note links: semibold; nested notes under folders: regular weight */
+.track-highlight-wrapper .top-level > li > a {
+  font-weight: 600;
+}
+
+.track-highlight-wrapper ul ul a {
+  font-weight: 400 !important;
 }
 
 .right-sidebar a {
@@ -882,10 +1503,20 @@ body {
     right: 0 !important;
     left: auto !important;
   }
-  :global([data-has-sidebar][data-has-toc]) .main-pane {
+}
+
+/* Center main content in available space; re-center when sidebars toggle */
+@media (min-width: 72rem) {
+  [data-has-sidebar] .main-pane {
+    --sl-content-margin-inline: auto;
+    flex: 1 1 0;
     width: auto !important;
-    flex-grow: 1;
-    margin: 0 !important;
+    min-width: 0;
+  }
+
+  [data-has-sidebar] .main-pane .content-panel .sl-container {
+    margin-inline: auto !important;
+    max-width: var(--sl-content-width);
   }
 }
 
@@ -921,7 +1552,6 @@ body.hide-right-sidebar .right-sidebar-header-custom {
   border-bottom: none;
 }
 body.hide-left-sidebar .sidebar-header-custom .sidebar-title,
-body.hide-left-sidebar .track-highlight-label,
 body.hide-right-sidebar .right-sidebar-header-custom .sidebar-title {
   display: none !important;
 }
@@ -938,8 +1568,39 @@ body.hide-right-sidebar .right-sidebar-header-custom .sidebar-title {
   display: none !important;
 }
 
+/* Light search field (Starlight dark theme uses --sl-color-black for the button bg) */
+@media (min-width: 50rem) {
+  site-search button[data-open-modal] {
+    background-color: var(--sl-color-bg) !important;
+    border-color: var(--sl-color-hairline) !important;
+    color: var(--gl-muted) !important;
+  }
+
+  site-search button[data-open-modal]:hover {
+    background-color: var(--gl-surface) !important;
+    border-color: var(--sl-color-gray-3) !important;
+    color: var(--sl-color-text) !important;
+  }
+}
+
 site-search button[data-open-modal] svg {
   color: var(--sl-color-accent);
+}
+
+site-search dialog {
+  background-color: var(--sl-color-bg) !important;
+  border-color: var(--sl-color-hairline) !important;
+}
+
+#starlight__search {
+  --pagefind-ui-background: var(--sl-color-bg);
+  --pagefind-ui-text: var(--sl-color-text);
+  --pagefind-ui-primary: var(--sl-color-text);
+  --pagefind-ui-border: var(--sl-color-hairline);
+}
+
+#starlight__search .pagefind-ui__search-input {
+  color: var(--sl-color-text) !important;
 }
 
 /* Hide the Ctrl+K shortcut hint in the search bar to avoid confusion */
@@ -966,25 +1627,18 @@ site-search button[data-open-modal] > kbd {
 }
 
 /* ── Pagination ──────────────────────────────────────────── */
-.pagination-links a {
+.pagination-links .pagination-link {
   border: 1px solid var(--sl-color-hairline) !important;
   border-radius: 10px !important;
-  transition: border-color 0.15s ease, background 0.15s ease !important;
-  padding: 0.75rem 1rem !important;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease !important;
+  padding: 0.85rem 1.1rem !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
-.pagination-links a:hover {
+.pagination-links .pagination-link:hover {
   border-color: var(--sl-color-accent) !important;
   background: var(--gl-accent-bg) !important;
-}
-
-.pagination-links a span {
-  font-size: 0.8rem !important;
-}
-
-.pagination-links a .link-title {
-  font-size: 0.95rem !important;
-  font-weight: 600 !important;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.08);
 }
 
 /* ── Responsive ──────────────────────────────────────────── */

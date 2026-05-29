@@ -21,28 +21,36 @@ A Bayesian approach allows us to factor in extra considerations before we even f
 
 Substituting our specific variables (data $D$ and probability of heads $\theta$) into Bayes' rule gives us the continuous form for updating a parameter:
 
-$$ P(\theta|D) = \frac{P(D|\theta)P(\theta)}{P(D)} $$
+$$
+P(\theta|D) = \frac{P(D|\theta)P(\theta)}{P(D)}
+$$
 
 Each component of this equation plays a specific role:
 
 <Callout type="info" title="The Likelihood: $P(D|\theta)$">
 The probability of observing the data $D$ if the parameter were exactly $\theta$. Since a coin flip is a binary event, this is a Bernoulli distribution. If we observe $h$ heads and $t$ tails, the probability mass function (PMF) is:
 
-$$ P(D|\theta) = \theta^h (1-\theta)^t $$
+$$
+P(D|\theta) = \theta^h (1-\theta)^t
+$$
 
 </Callout>
 
 <Callout type="note" title="The Prior: $P(\theta)$">
 Our subjective assumptions about the parameter before seeing any data. We want to pick a distribution that will merge well with our likelihood. For a Bernoulli likelihood, the perfect match is the **Beta distribution**, defined on the interval $[0, 1]$. It has two parameters, $\alpha$ and $\beta$, which control its shape:
 
-$$ P(\theta) = \text{Beta}(\theta|\alpha, \beta) = \frac{1}{B(\alpha, \beta)} \theta^{\alpha-1} (1-\theta)^{\beta-1} $$
+$$
+P(\theta) = \text{Beta}(\theta|\alpha, \beta) = \frac{1}{B(\alpha, \beta)} \theta^{\alpha-1} (1-\theta)^{\beta-1}
+$$
 
 </Callout>
 
 <Callout type="note" title="The Scaling Constant: $P(D)$">
 The total probability of observing the data across all possible values of $\theta$. This ensures the posterior is a valid probability distribution that integrates to 1. Because $\theta$ is continuous, we use an integral over the likelihood and the prior:
 
-$$ P(D) = \int P(D|\theta)P(\theta) d\theta $$
+$$
+P(D) = \int P(D|\theta)P(\theta) d\theta
+$$
 
 Calculating this integral is often complex, which is why we carefully select a prior that makes it tractable.
 </Callout>
@@ -319,11 +327,14 @@ P(\theta \mid D)
 =
 \mathrm{Beta}(\theta \mid \alpha+h, \beta+t)
 $$
+
 </Callout>
 
 The posterior can be formalized as:
 
-$$P(\theta \mid D) = \frac{1}{B(\alpha+h,\beta+t)} \theta^{\alpha+h-1}(1-\theta)^{\beta+t-1} $$
+$$
+P(\theta \mid D) = \frac{1}{B(\alpha+h,\beta+t)} \theta^{\alpha+h-1}(1-\theta)^{\beta+t-1}
+$$
 
 Which is a Beta distribution with a parameter update based on the observed data. 
 
@@ -339,7 +350,9 @@ The posterior is our final result, and it is a full distribution. If we want poi
 
 The expected value (mean) of a Beta distribution is calculated as:
 
-$$ \text{Mean} = \frac{\alpha}{\alpha + \beta} $$
+$$
+\text{Mean} = \frac{\alpha}{\alpha + \beta}
+$$
 
 If we want intervals, we can get them directly from the distribution itself. By finding the left and right percentiles that we desire (e.g., the 2.5th and 97.5th percentiles), we obtain a credible interval. We can also get direct quantile predictions instead of looking for the mean or other landmarks.
 
@@ -365,11 +378,15 @@ We then receive some data $D$. We flip the coin 10 times, and observe 7 heads an
 
 We calculate the posterior, which is a Beta distribution with the relative additions to the parameters:
 
-$$ P(\theta|D) = \text{Beta}(\alpha + h, \beta + t) $$
+$$
+P(\theta|D) = \text{Beta}(\alpha + h, \beta + t)
+$$
 
 Subbing in our actual numbers ($\alpha=2, \beta=2, h=7, t=3$):
 
-$$ P(\theta|D) = \text{Beta}(2 + 7, 2 + 3) = \text{Beta}(9, 5) $$
+$$
+P(\theta|D) = \text{Beta}(2 + 7, 2 + 3) = \text{Beta}(9, 5)
+$$
 
 This results in a new output distribution, our posterior.
 

@@ -92,11 +92,15 @@ Increasing variance widens the distributions and increases their overlap (harder
 
 The distributions above are normal distributions over $\Delta$, where:
 
-$$\Delta = \bar{X}_T - \bar{X}_C$$
+$$
+\Delta = \bar{X}_T - \bar{X}_C
+$$
 
 The variance of this estimator depends directly on sample size:
 
-$$\mathrm{Var}(\Delta) = \frac{2\sigma^2}{n}$$
+$$
+\mathrm{Var}(\Delta) = \frac{2\sigma^2}{n}
+$$
 
 Increasing $n$ reduces variance, which tightens the distributions and decreases their overlap.
 
@@ -132,27 +136,39 @@ Now:
 
 Since the boundary is the same point in space, we can equate the two coordinates:
 
-$$Z_{1-\alpha/2} = d_{standardized} + Z_{\beta}$$
+$$
+Z_{1-\alpha/2} = d_{standardized} + Z_{\beta}
+$$
 
 Solving for the total standardized separation between the two distributions' means gives:
 
-$$d_{standardized} = Z_{1-\alpha/2} - Z_{\beta}$$
+$$
+d_{standardized} = Z_{1-\alpha/2} - Z_{\beta}
+$$
 
 But this distance exists only in standardized Z-score units. To convert it back into real metric units, we multiply by the standard deviation of the estimator. Since:
 
-$$\mathrm{Var}(\Delta) = \frac{2\sigma^2}{n}$$
+$$
+\mathrm{Var}(\Delta) = \frac{2\sigma^2}{n}
+$$
 
 the standard error becomes:
 
-$$\sqrt{\frac{2\sigma^2}{n}} = \sigma \sqrt{\frac{2}{n}}$$
+$$
+\sqrt{\frac{2\sigma^2}{n}} = \sigma \sqrt{\frac{2}{n}}
+$$
 
 Applying this to the standardized separation equation gives the converted absolute unit distance:
 
-$$d = (Z_{1-\alpha/2} - Z_{\beta}) \cdot \sigma \sqrt{\frac{2}{n}}$$
+$$
+d = (Z_{1-\alpha/2} - Z_{\beta}) \cdot \sigma \sqrt{\frac{2}{n}}
+$$
 
 We now rearrange the equation to solve for sample size:
 
-$$n = \frac{2\sigma^2 (Z_{1-\alpha/2} - Z_{\beta})^2}{d^2}$$
+$$
+n = \frac{2\sigma^2 (Z_{1-\alpha/2} - Z_{\beta})^2}{d^2}
+$$
 
 At this point, every term besides $n$ becomes a user input:
 - $\alpha$ is fixed by our desired false positive rate.
@@ -174,15 +190,21 @@ Let:
 
 We compute:
 
-$$\theta = \frac{\mathrm{Cov}(Y, X)}{\mathrm{Var}(X)}$$
+$$
+\theta = \frac{\mathrm{Cov}(Y, X)}{\mathrm{Var}(X)}
+$$
 
 and define the adjusted metric:
 
-$$\hat{Y}_i = Y_i - \theta (X_i - \mathbb{E}[X])$$
+$$
+\hat{Y}_i = Y_i - \theta (X_i - \mathbb{E}[X])
+$$
 
 This removes the component of user behaviour already explained by historical baseline effects. The resulting variance becomes:
 
-$$\mathrm{Var}(\hat{Y}) = \mathrm{Var}(Y)(1-\rho^2)$$
+$$
+\mathrm{Var}(\hat{Y}) = \mathrm{Var}(Y)(1-\rho^2)
+$$
 
 where $\rho$ is the correlation between pre-experiment and in-experiment behaviour.
 
@@ -194,7 +216,9 @@ Classical CUPED uses a single linear covariate. **CUPAC** generalizes the same i
 
 Instead of adjusting against one historical metric, we train a predictive model on hundreds of pre-experiment features, estimate expected user behaviour, and run the experiment on the residual:
 
-$$Y_i - \hat{Y}_{ML, i}$$
+$$
+Y_i - \hat{Y}_{ML, i}
+$$
 
 The better the model explains user behaviour, the smaller the remaining variance, and the fewer observations required to achieve the same statistical power.
 

@@ -11,11 +11,15 @@ Causal inference estimates what would happen to a patient under different clinic
 
 The fundamental problem of causal inference is that we only observe the outcome corresponding to the treatment actually received:
 
-$$Y_i = A_i Y_{1i} + (1 - A_i) Y_{0i}$$
+$$
+Y_i = A_i Y_{1i} + (1 - A_i) Y_{0i}
+$$
 
 Because the counterfactual outcome remains unobserved, we can never directly measure the Individual Treatment Effect (ITE):
 
-$$\text{ITE}_i = Y_{1i} - Y_{0i}$$
+$$
+\text{ITE}_i = Y_{1i} - Y_{0i}
+$$
 
 ## Treatment Effects
 
@@ -23,11 +27,15 @@ Since the ITE is unobservable, we estimate averages across populations.
 
 The **Average Treatment Effect (ATE)** measures the overall impact across all patients, smoothing out individual variations:
 
-$$\text{ATE} = \mathbb{E}[Y_1 - Y_0]$$
+$$
+\text{ATE} = \mathbb{E}[Y_1 - Y_0]
+$$
 
 When treatments affect subpopulations differently, we estimate the **[Conditional Average Treatment Effect](/tracks/causal-inference/heterogeneous-treatment-effects/introduction-and-basic-meta-learners/) (CATE)**. This is the expected effect for patients sharing specific characteristics $x$:
 
-$$\text{CATE}(x) = \mathbb{E}[Y_1 - Y_0 \mid X = x]$$
+$$
+\text{CATE}(x) = \mathbb{E}[Y_1 - Y_0 \mid X = x]
+$$
 
 The ATE is simply the CATE marginalized across the entire covariate distribution. Identifying these effects from observational data relies on three structural assumptions.
 
@@ -43,11 +51,15 @@ The Stable Unit Treatment Value Assumption (SUTVA) requires:
 
 Given observed covariates $X$, treatment assignment is independent of potential outcomes:
 
-$$Y_1, Y_0 \perp A \mid X$$
+$$
+Y_1, Y_0 \perp A \mid X
+$$
 
 This means there is no treatment assignment bias within any specific patient subgroup. If we strictly control for $X$, the clinical decision to treat is essentially randomized. This removes confounding, ensuring that treated and untreated patients within the same subgroup have the same expected baseline outcomes:
 
-$$\mathbb{E}[Y_1 \mid A=1, X] = \mathbb{E}[Y_1 \mid A=0, X]$$
+$$
+\mathbb{E}[Y_1 \mid A=1, X] = \mathbb{E}[Y_1 \mid A=0, X]
+$$
 
 This requires that every variable influencing both the treatment decision and the health outcome is measured and included in $X$. See [DAG](/tracks/causal-inference/dag/) note for examples of what to include and what not to include in X.
 
@@ -55,7 +67,9 @@ This requires that every variable influencing both the treatment decision and th
 
 Every patient profile must have a non-zero probability of receiving either the treatment or the control:
 
-$$0 < P(A = 1 \mid X = x) < 1$$
+$$
+0 < P(A = 1 \mid X = x) < 1
+$$
 
 If doctors always prescribe a medication to patients with a specific condition, we cannot estimate the counterfactual because no comparable untreated patients exist. [Propensity Scores](/tracks/causal-inference/propensity-scores/) near 0 or 1 flag these exact positivity violations.
 

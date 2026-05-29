@@ -1,0 +1,87 @@
+---
+import Callout from './Callout.astro';
+import {
+  trackOverviews,
+  type TrackContentSection,
+  type TrackOverviewId,
+} from '../data/trackOverviews';
+import { withBase } from '../utils/withBase';
+
+interface Props {
+  trackId: TrackOverviewId;
+}
+
+const { trackId } = Astro.props;
+const config = trackOverviews[trackId];
+const { hours, summary, comingSoon, sections } = config;
+
+function sectionTitle(section: TrackContentSection): string | null {
+  if (section.title) return section.title;
+  if (sections.length > 1) return 'General';
+  return null;
+}
+---
+
+<div class="track-overview">
+  {hours !== undefined && (
+    <p class="track-overview__hours">
+      <svg class="track-overview__hours-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+      <span>{hours} {hours === 1 ? 'hour' : 'hours'} estimated</span>
+    </p>
+  )}
+
+  <p class="track-overview__summary">{summary}</p>
+
+  <Callout type="info" title="Navigate this track">
+    Use the <strong>Track Content</strong> sidebar on the left to jump between notes in order, or open any topic below to go straight to what you need.
+  </Callout>
+
+  {comingSoon ? (
+    <div class="coming-soon">
+      <span class="coming-soon__badge">In Progress</span>
+      <h3 class="coming-soon__title">Notes coming soon</h3>
+      <p>
+        We're building out this track — Bayesian A/B testing, posterior inference, decision policies, and adaptive bandit designs.
+        Check back soon for the full sequence of notes.
+      </p>
+    </div>
+  ) : (
+    <section class="track-overview__content" aria-label="Track content">
+      <h2 class="track-overview__content-heading">Content</h2>
+
+      {sections.map((section) => {
+        const title = sectionTitle(section);
+        return (
+        <div class="track-overview__section">
+          {title && (
+            <h3 class="track-overview__section-title">{title}</h3>
+          )}
+          <div class="track-overview__notes">
+            {section.notes.map((note) => {
+              const Tag = note.comingSoon ? 'div' : 'a';
+              return (
+                <Tag
+                  class:list={[
+                    'track-overview__note',
+                    note.comingSoon && 'track-overview__note--soon',
+                  ]}
+                  href={note.comingSoon ? undefined : withBase(note.href)}
+                >
+                  <span class="track-overview__note-title">{note.title}</span>
+                  <span class="track-overview__note-desc">{note.description}</span>
+                  {note.comingSoon && (
+                    <span class="track-overview__note-badge">Coming soon</span>
+                  )}
+                </Tag>
+              );
+            })}
+          </div>
+        </div>
+        );
+      })}
+    </section>
+  )}
+</div>

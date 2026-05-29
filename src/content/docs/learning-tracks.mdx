@@ -5,49 +5,16 @@ template: splash
 draft: false
 ---
 
+import TrackCards from '../../components/TrackCards.astro';
+
 <style>{`
   /* Hide the default Starlight page title and divider on the splash page */
   #_top { display: none !important; }
-
-  /* Center the content for the splash page */
-  .splash-container {
-    max-width: 74ch;
-    margin: 0 auto;
-    padding-top: 2rem;
-  }
-  .splash-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    letter-spacing: -0.04em;
-    margin-bottom: 1rem;
-    color: var(--sl-color-text);
-  }
-  .splash-desc {
-    font-size: 1.1rem;
-    color: var(--gl-muted);
-    margin-bottom: 3rem;
-  }
 `}</style>
 
 <div class="splash-container">
   <h1 class="splash-title">Learning Tracks</h1>
   <p class="splash-desc">Here is the complete list of learning tracks currently available on Gradient Lectures. We are continuously adding new material.</p>
 
-  <div class="track-cards">
-    <a class="track-card" href="/gradient-lectures/tracks/experimentation/">
-      <div class="track-card__number">Track 01</div>
-      <div class="track-card__title">Experimentation</div>
-      <div class="track-card__desc">The mathematics and statistics of A/B testing — power analysis, causal estimation, sequential testing, multiple comparisons, and network effects. Includes both Frequentist and Bayesian methods.</div>
-    </a>
-    <a class="track-card" href="/gradient-lectures/tracks/bayesian-statistics/">
-      <div class="track-card__number">Track 02</div>
-      <div class="track-card__title">Bayesian Statistics</div>
-      <div class="track-card__desc">Bayesian inference from first principles — conjugate priors, posterior updates, credible intervals, and Bayesian regression.</div>
-    </a>
-    <a class="track-card" href="/gradient-lectures/tracks/causal-inference/">
-      <div class="track-card__number">Track 03</div>
-      <div class="track-card__title">Causal Inference</div>
-      <div class="track-card__desc">Observational causal inference — DAGs, matching methods, propensity scores, IPW, and heterogeneous treatment effects like Causal Forests and CFRNet.</div>
-    </a>
-  </div>
+  <TrackCards />
 </div>

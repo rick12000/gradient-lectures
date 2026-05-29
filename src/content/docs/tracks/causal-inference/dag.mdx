@@ -26,17 +26,23 @@ Why does this parent-conditioning rule work?
 
 By the standard chain rule of probability, any joint distribution can be factored sequentially:
 
-$$P(X_1, X_2, \ldots, X_n) = \prod_{i=1}^n P(X_i \mid X_1, \ldots, X_{i-1})$$
+$$
+P(X_1, X_2, \ldots, X_n) = \prod_{i=1}^n P(X_i \mid X_1, \ldots, X_{i-1})
+$$
 
 In a DAG, we can order the nodes topologically such that parents always come before children.
 
 The **Local Markov Assumption** states that a variable is conditionally independent of all its non-descendants given its direct parents. Mathematically:
 
-$$X_i \perp \{ \text{Non-Descendants}(X_i) \} \mid \text{Parents}(X_i)$$
+$$
+X_i \perp \{ \text{Non-Descendants}(X_i) \} \mid \text{Parents}(X_i)
+$$
 
 By applying this assumption to the standard chain rule, all the extraneous upstream variables drop out of the conditioning set. We are left only with the direct parents:
 
-$$P(X_1, \dots, X_n) = \prod_{i=1}^n P(X_i \mid \text{Parents}(X_i))$$
+$$
+P(X_1, \dots, X_n) = \prod_{i=1}^n P(X_i \mid \text{Parents}(X_i))
+$$
 
 This is why we simply multiply the probability of each node given its parents.
 
@@ -58,7 +64,9 @@ In this simple graph:
 
 Applying the factorization rule, the joint distribution is:
 
-$$P(A, B, C, D) = P(C) P(D) P(A \mid D) P(B \mid A)$$
+$$
+P(A, B, C, D) = P(C) P(D) P(A \mid D) P(B \mid A)
+$$
 
 ### Complex Factorization
 
@@ -79,7 +87,9 @@ In this more complex structure:
 
 The joint distribution factorizes as:
 
-$$P(X, Y, Z, M, W) = P(Z) P(W) P(X \mid Z) P(M \mid X, W) P(Y \mid Z, M)$$
+$$
+P(X, Y, Z, M, W) = P(Z) P(W) P(X \mid Z) P(M \mid X, W) P(Y \mid Z, M)
+$$
 
 ## Path Blocking and Causal Inference
 

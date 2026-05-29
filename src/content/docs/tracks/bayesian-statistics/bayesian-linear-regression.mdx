@@ -30,7 +30,9 @@ $$
 <Callout type="note" title="What changes if we include an intercept?">
 With an intercept, the model would be:
 
-$$ y_i = \alpha + \beta x_i + \epsilon_i $$
+$$
+y_i = \alpha + \beta x_i + \epsilon_i
+$$
 
 Then we would need a joint prior over both $\alpha$ and $\beta$.
 The same logic still applies, but the posterior becomes a multivariate Gaussian instead of a one-dimensional Gaussian. We're keeping things as simple as possible in this note.
@@ -129,7 +131,9 @@ The posterior becomes more certain when the prior is strong (small $\tau_0^2$), 
 <Callout type="note" title="Connection to Ordinary Least Squares">
 In this no-intercept model, the ordinary least squares estimate is:
 
-$$ \hat{\beta}_{OLS} = \frac{\sum_{i=1}^n x_i y_i}{\sum_{i=1}^n x_i^2} $$
+$$
+\hat{\beta}_{OLS} = \frac{\sum_{i=1}^n x_i y_i}{\sum_{i=1}^n x_i^2}
+$$
 
 If the prior variance $\tau_0^2$ becomes very large, the prior precision $\frac{1}{\tau_0^2}$ approaches zero. In that weak-prior limit, the posterior mean approaches the ordinary least squares estimate.
 </Callout>
@@ -215,7 +219,9 @@ If we only want uncertainty about the mean line itself (i.e. what is the likely 
 
 A 95% credible interval for the mean response $\beta x_*$ is:
 
-$$ x_*\mu_n \pm 1.96\sqrt{x_*^2\tau_n^2} $$
+$$
+x_*\mu_n \pm 1.96\sqrt{x_*^2\tau_n^2}
+$$
 
 </Callout>
 

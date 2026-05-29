@@ -6,72 +6,16 @@ draft: false
 ---
 
 <style>{`
-  /* Hide the default Starlight page title and divider on the splash page */
   #_top { display: none !important; }
-
-  /* Center the content for the splash page */
-  .splash-container {
-    max-width: 74ch;
-    margin: 0 auto;
-    padding-top: 2rem;
-  }
-  .splash-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    letter-spacing: -0.04em;
-    margin-bottom: 1rem;
-    color: var(--sl-color-text);
-  }
-  .splash-desc {
-    font-size: 1.1rem;
-    line-height: 1.7;
-    color: var(--gl-muted);
-    margin-bottom: 2rem;
-  }
-  .splash-content {
-    font-size: 1rem;
-    line-height: 1.8;
-  }
-  .splash-content h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    color: var(--sl-color-text);
-  }
-  .splash-content ul {
-    margin-left: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-  .splash-content a {
-    color: var(--sl-color-accent);
-    font-weight: 600;
-    text-decoration: none;
-  }
-  .splash-content a:hover {
-    text-decoration: underline;
-  }
 `}</style>
 
-<div class="splash-container">
+<div class="splash-container splash-container--contribute">
   <h1 class="splash-title">Contribute</h1>
-  
-  <div class="splash-content">
-    <p class="splash-desc">Contributions to Gradient Lectures are always welcome! Whether you've spotted a typo, found a mathematical error, or want to suggest an improvement to the interactive visualizations, your feedback helps make this resource better for everyone.</p>
-
-    <h3>Reporting Issues</h3>
-
-    <p>If you find any mistakes in the content, or if you encounter any bugs related to the website's rendering or interactive components, please open an issue on our GitHub repository:</p>
-
-    <p><a href="https://github.com/rick12000/gradient-lectures/issues" target="_blank" rel="noopener noreferrer"><strong>→ Open an Issue on GitHub</strong></a></p>
-
-    <p>When reporting a bug, please include:</p>
-    <ul>
-      <li>The URL of the page where the issue occurs.</li>
-      <li>A brief description of what is wrong.</li>
-      <li>If applicable, steps to reproduce the bug (especially for interactive charts).</li>
-    </ul>
-
-    <p>Thank you for helping improve Gradient Lectures!</p>
-  </div>
+  <p class="splash-desc">Spotted a typo, math error, or broken chart? Open an issue on GitHub and we'll take a look.</p>
+  <a
+    href="https://github.com/rick12000/gradient-lectures/issues"
+    class="gl-btn"
+    target="_blank"
+    rel="noopener noreferrer"
+  >Open an issue on GitHub</a>
 </div>

@@ -14,11 +14,15 @@ When we conduct a single hypothesis test at $\alpha = 0.05$, we accept a 5% prob
 
 If we conduct $m$ independent tests, the probability of *avoiding* a false positive on any single test is $1 - \alpha$. The probability of avoiding false positives across all $m$ tests is the product of their individual probabilities:
 
-$$P(\text{no false positives}) = (1 - \alpha)^m$$
+$$
+P(\text{no false positives}) = (1 - \alpha)^m
+$$
 
 Consequently, the probability of making *at least one* false positive decision across the entire set is:
 
-$$P(\text{at least one false positive}) = 1 - (1 - \alpha)^m$$
+$$
+P(\text{at least one false positive}) = 1 - (1 - \alpha)^m
+$$
 
 <Callout type="note" title="Family-Wise Error Rate (FWER)">
 
@@ -62,7 +66,9 @@ FWER methods maintain $P(\text{at least one false positive}) \leq \alpha$ across
 
 To maintain an overall error rate of $\alpha$, we find a per-comparison threshold ($\alpha_{\text{pc}}$) such that:
 
-$$1 - (1 - \alpha_{\text{pc}})^m = \alpha$$
+$$
+1 - (1 - \alpha_{\text{pc}})^m = \alpha
+$$
 
 Solving for $\alpha_{\text{pc}}$ yields $1 - (1 - \alpha)^{1/m}$. For small $\alpha$, this is approximated by its Taylor expansion: $\alpha_{\text{pc}} \approx \frac{\alpha}{m}$. This is the Bonferroni correction.
 
@@ -76,13 +82,17 @@ Let $m_0$ be the unknown number of true null hypotheses among our $m$ tests. The
 
 Suppose $k$ is the index of the *first* true null hypothesis rejected. Its p-value $p_{(k)}$ must have passed the threshold:
 
-$$p_{(k)} \leq \frac{\alpha}{m - k + 1}$$
+$$
+p_{(k)} \leq \frac{\alpha}{m - k + 1}
+$$
 
 Because $k$ is the first true null rejected, all previous $k - 1$ rejections must have been true effects. Therefore, the total number of true nulls $m_0$ can be at most $m - (k - 1) = m - k + 1$.
 
 Substituting this upper bound gives:
 
-$$p_{(k)} \leq \frac{\alpha}{m_0}$$
+$$
+p_{(k)} \leq \frac{\alpha}{m_0}
+$$
 
 By Boole's inequality, the probability that *any* of the $m_0$ true null p-values is $\leq \frac{\alpha}{m_0}$ is bounded by $m_0 \times \frac{\alpha}{m_0} = \alpha$. Thus FWER $\leq \alpha$.
 
@@ -113,17 +123,23 @@ FWER control is often too punitive. If we test 100 metrics, we may accept a few 
 
 FDR controls the expected proportion of false positives among all rejected null hypotheses:
 
-$$\text{FDR} = E\left[\frac{\text{\# false positives}}{\text{\# total rejections}}\right]$$
+$$
+\text{FDR} = E\left[\frac{\text{\# false positives}}{\text{\# total rejections}}\right]
+$$
 
 </Callout>
 
 Suppose we have $m$ tests, with $m_0$ true null hypotheses. If we use a rejection threshold $t$, the expected number of false positives is $m_0 \cdot t$. Let $R$ be the total number of rejections. The False Discovery Rate is approximately $\frac{m_0 \cdot t}{R}$. Conservatively bounding $m_0$ by $m$ gives:
 
-$$\text{FDR} \leq \frac{m \cdot t}{R}$$
+$$
+\text{FDR} \leq \frac{m \cdot t}{R}
+$$
 
 To guarantee FDR $\leq \alpha$, we set $t$ such that:
 
-$$\frac{m \cdot t}{R} \leq \alpha \implies t \leq \frac{R}{m} \alpha$$
+$$
+\frac{m \cdot t}{R} \leq \alpha \implies t \leq \frac{R}{m} \alpha
+$$
 
 The threshold $t$ must scale linearly with the number of discoveries $R$.
 
@@ -143,7 +159,9 @@ We need threshold $t \leq \frac{R}{m} \alpha$, where $R$ is total rejections.
 
 Sort p-values $p_{(1)} \leq p_{(2)} \leq \cdots \leq p_{(m)}$. If we reject the first $k$ hypotheses, $R = k$ and the effective threshold is $t = p_{(k)}$. Substituting:
 
-$$p_{(k)} \leq \frac{k}{m} \alpha$$
+$$
+p_{(k)} \leq \frac{k}{m} \alpha
+$$
 
 To maximise power, we find the *largest* $k$ satisfying this condition ($k^*$). We reject all hypotheses $1$ through $k^*$, even if some individual $p_{(i)}$ exceeds $\frac{i}{m}\alpha$. The FDR guarantee is a property of the *entire rejection set*.
 

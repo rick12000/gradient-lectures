@@ -1,0 +1,35 @@
+---
+import TrackCard from './TrackCard.astro';
+import { learningTracks, type LearningTrack } from '../data/tracks';
+
+interface Props {
+  variants?: LearningTrack['variant'][];
+  comingSoonVariants?: LearningTrack['variant'][];
+  /** Homepage: clip grid and fade the second row into the view-all link. */
+  previewFade?: boolean;
+}
+
+const { variants, comingSoonVariants = [], previewFade = false } = Astro.props;
+
+const tracks = variants
+  ? variants
+      .map((v) => learningTracks.find((t) => t.variant === v))
+      .filter((t): t is LearningTrack => t !== undefined)
+  : learningTracks;
+---
+
+{previewFade ? (
+  <div class="track-cards-preview">
+    <div class="track-cards">
+      {tracks.map((track) => (
+        <TrackCard track={track} comingSoon={comingSoonVariants.includes(track.variant)} />
+      ))}
+    </div>
+  </div>
+) : (
+  <div class="track-cards">
+    {tracks.map((track) => (
+      <TrackCard track={track} comingSoon={comingSoonVariants.includes(track.variant)} />
+    ))}
+  </div>
+)}

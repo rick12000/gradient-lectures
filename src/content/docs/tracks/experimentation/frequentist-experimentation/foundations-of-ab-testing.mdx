@@ -12,13 +12,17 @@ However, we cannot observe how the exact same user reacts to two different state
 
 Instead, we randomize the treatment across a large sample, which controls for possible confounders. We then calculate an estimator that quantifies the effectiveness of the treatment: the **Average Treatment Effect (ATE)**.
 
-$$\text{ATE} = \mathbb{E}[Y_T - Y_C]$$
+$$
+\text{ATE} = \mathbb{E}[Y_T - Y_C]
+$$
 
 <Callout type="info" title="Derivation: Linearity of Expectation" collapsible defaultOpen={false}>
 
 By the linearity of expectation, the expected value of the difference is simply the difference of the expected values:
 
-$$\mathbb{E}[Y_T - Y_C] = \mathbb{E}[Y_T] - \mathbb{E}[Y_C]$$
+$$
+\mathbb{E}[Y_T - Y_C] = \mathbb{E}[Y_T] - \mathbb{E}[Y_C]
+$$
 
 This means the ATE is equivalent to the expected treatment outcome minus the expected control outcome.
 
@@ -40,7 +44,9 @@ The raw individual observations (e.g., each user's revenue) are distinct from th
 
 The expected value of the sample mean is simply the population mean:
 
-$$\mathbb{E}[\bar{X}] = \mu$$
+$$
+\mathbb{E}[\bar{X}] = \mu
+$$
 
 However, the variance of the sample mean scales down as the sample size grows.
 
@@ -48,15 +54,21 @@ However, the variance of the sample mean scales down as the sample size grows.
 
 Assuming independent and identically distributed (i.i.d.) observations, the variance of the sample mean $\bar{X}$ is:
 
-$$\text{Var}(\bar{X}) = \text{Var}\left( \frac{1}{n} \sum_{i=1}^{n} X_i \right)$$
+$$
+\text{Var}(\bar{X}) = \text{Var}\left( \frac{1}{n} \sum_{i=1}^{n} X_i \right)
+$$
 
 Pulling the constant $\frac{1}{n}$ out of the variance squares it:
 
-$$= \frac{1}{n^2} \sum_{i=1}^{n} \text{Var}(X_i)$$
+$$
+= \frac{1}{n^2} \sum_{i=1}^{n} \text{Var}(X_i)
+$$
 
 Since each observation has variance $\sigma^2$, the sum is $n\sigma^2$:
 
-$$= \frac{n\sigma^2}{n^2} = \frac{\sigma^2}{n}$$
+$$
+= \frac{n\sigma^2}{n^2} = \frac{\sigma^2}{n}
+$$
 
 </Callout>
 
@@ -74,13 +86,17 @@ A fundamental property of normal distributions is that the difference between tw
 
 This yields the final parameterized normal distribution for our Difference-in-Means estimator ($\hat{\Delta}$):
 
-$$\hat{\Delta} \sim \mathcal{N}\left(\mu_T - \mu_C, \frac{\sigma_T^2}{n_T} + \frac{\sigma_C^2}{n_C}\right)$$
+$$
+\hat{\Delta} \sim \mathcal{N}\left(\mu_T - \mu_C, \frac{\sigma_T^2}{n_T} + \frac{\sigma_C^2}{n_C}\right)
+$$
 
 ### Uncertainty Quantification
 
 We run an experiment, gather the data, and follow the steps above to calculate the variance of our estimator.
 
 To quantify uncertainty, we plot a normal distribution under the null hypothesis (assuming the treatment has zero effect). This null distribution is artificially centered at 0, but it is parameterized by the exact variance we calculated from our experiment.
+
+![Null distribution under H₀](../../../../../assets/images/cursor-generated-null-distribution.png)
 
 We then take our actual observed difference in means ($\hat{\Delta}$) and check where it sits on this curve.
 
@@ -94,11 +110,15 @@ The expected value remains the sample average, but the variance calculation depe
 
 - **Continuous Metrics** (e.g., Revenue per User, Time Spent): The variance is calculated using the standard sample variance formula, which measures the squared deviations from the mean:
 
-  $$s^2 = \frac{1}{n-1} \sum_{i=1}^{n} (X_i - \bar{X})^2$$
+$$
+s^2 = \frac{1}{n-1} \sum_{i=1}^{n} (X_i - \bar{X})^2
+$$
 
 - **Binary Metrics** (e.g., Conversion Rate, Click-Through Rate): These follow a Bernoulli distribution. The variance is deterministically linked to the success proportion ($\hat{p}$):
 
-  $$s^2 = \hat{p}(1 - \hat{p})$$
+$$
+s^2 = \hat{p}(1 - \hat{p})
+$$
 
 <Callout type="note" title="Data-Driven Variance">
 

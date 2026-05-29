@@ -1,0 +1,27 @@
+---
+import type { LearningTrack } from '../data/tracks';
+import { withBase } from '../utils/withBase';
+
+interface Props {
+  track: LearningTrack;
+  comingSoon?: boolean;
+}
+
+const { track, comingSoon = false } = Astro.props;
+const Tag = comingSoon ? 'div' : 'a';
+---
+
+<Tag
+  class:list={['track-card', `track-card--${track.variant}`, comingSoon && 'track-card--faded']}
+  href={comingSoon ? undefined : withBase(track.href)}
+>
+  <div class="track-card__number">{track.number}</div>
+  <div class="track-card__title">{track.title}</div>
+  <div class="track-card__desc">{track.description}</div>
+  <div class="track-card__footer">
+    <span class:list={['track-card__tag', `track-card__tag--${track.tag}`]}>{track.tag}</span>
+    <span class="track-card__hours">
+      <strong>{track.hours} {track.hours === 1 ? 'hour' : 'hours'}</strong>
+    </span>
+  </div>
+</Tag>

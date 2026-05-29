@@ -108,6 +108,11 @@ import TableOfContents from '@astrojs/starlight/components/TableOfContents.astro
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // Collapse the note content sidebar by default on desktop
+    if (window.matchMedia('(min-width: 72rem)').matches) {
+      document.body.classList.add('hide-right-sidebar');
+    }
+
     const rightToggles = document.querySelectorAll('.right-sidebar-toggle');
     rightToggles.forEach(btn => {
       btn.addEventListener('click', () => {

@@ -1,0 +1,103 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+import { isTrackOverviewPage } from '../utils/isTrackOverviewPage';
+
+const { dir, pagination, slug } = Astro.locals.starlightRoute;
+const { prev, next } = pagination;
+const isRtl = dir === 'rtl';
+const hidePrev = isTrackOverviewPage(slug);
+const showPrev = prev && !hidePrev;
+const showNext = Boolean(next);
+---
+
+<div
+  class:list={['pagination-links', 'print:hidden', hidePrev && showNext && 'pagination-links--next-only']}
+  dir={dir}
+>
+  {
+    showPrev && (
+      <a href={prev.href} rel="prev" class="pagination-link">
+        <div class="pagination-direction-row">
+          <Icon name={isRtl ? 'right-arrow' : 'left-arrow'} size="1.125rem" class="pagination-icon" />
+          <span class="pagination-direction">{Astro.locals.t('page.previousLink')}</span>
+        </div>
+        <span class="link-title">{prev.label}</span>
+      </a>
+    )
+  }
+  {
+    showNext && (
+      <a href={next.href} rel="next" class="pagination-link">
+        <div class="pagination-direction-row">
+          <span class="pagination-direction">{Astro.locals.t('page.nextLink')}</span>
+          <Icon name={isRtl ? 'left-arrow' : 'right-arrow'} size="1.125rem" class="pagination-icon" />
+        </div>
+        <span class="link-title">{next.label}</span>
+      </a>
+    )
+  }
+</div>
+
+<style>
+  .pagination-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+    gap: 1rem;
+  }
+
+  .pagination-links--next-only {
+    grid-template-columns: 1fr;
+  }
+
+  .pagination-links--next-only .pagination-link[rel='next'] {
+    justify-self: end;
+  }
+
+  .pagination-link {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    width: 100%;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .pagination-link[rel='next'] {
+    align-items: flex-end;
+    text-align: end;
+  }
+
+  .pagination-direction-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    line-height: 1.2;
+  }
+
+  .pagination-direction {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--gl-muted);
+  }
+
+  .pagination-icon {
+    flex-shrink: 0;
+    color: var(--sl-color-text-accent);
+    margin-top: 0.05em;
+  }
+
+  .link-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--sl-color-text);
+  }
+
+  .pagination-link:hover .pagination-direction,
+  .pagination-link:hover .link-title {
+    color: var(--sl-color-text-accent);
+  }
+</style>

@@ -56,7 +56,9 @@ If we must peek but can restrict ourselves to a few planned interim looks (e.g.,
 
 The **O'Brien-Fleming (OBF)** boundary requires overwhelming evidence early on, relaxing the boundary as we gather data. It scales the threshold inversely with the square root of the information fraction $t_k = n_k / N$:
 
-$$Z_k = \frac{C_{OBF}}{\sqrt{t_k}}$$
+$$
+Z_k = \frac{C_{OBF}}{\sqrt{t_k}}
+$$
 
 For $K=5$ looks at $\alpha=0.05$, $C_{OBF} \approx 2.040$. The boundary starts very wide and narrows to approximately $1.96$ at the final look.
 
@@ -86,13 +88,17 @@ The mSPRT continuously calculates a likelihood ratio, $\Lambda_n$, which compare
 
 The mSPRT computes the likelihood ratio $\Lambda_n$ by integrating over a mixture distribution $F(\theta)$ of possible effect sizes:
 
-$$\Lambda_n = \int \prod_{i=1}^n \frac{f_{\theta}(X_i)}{f_0(X_i)} \, dF(\theta)$$
+$$
+\Lambda_n = \int \prod_{i=1}^n \frac{f_{\theta}(X_i)}{f_0(X_i)} \, dF(\theta)
+$$
 
 Under $H_0$, $\Lambda_n$ is a non-negative martingale. A martingale represents a "fair game" — its expected future value, given all past information, is exactly its current value. Since $\Lambda_0 = 1$, its expected value at any time is 1.
 
 This allows us to apply **Ville's Inequality**, bounding the probability that a non-negative martingale *ever* exceeds a certain threshold:
 
-$$P\left(\exists n \geq 1: \Lambda_n \geq \frac{1}{\alpha} \right) \leq \alpha$$
+$$
+P\left(\exists n \geq 1: \Lambda_n \geq \frac{1}{\alpha} \right) \leq \alpha
+$$
 
 This guarantees that if the null hypothesis is true, the probability that $\Lambda_n$ ever crosses $1/\alpha$ at *any* sample size $n$ is bounded by $\alpha$.
 
@@ -100,7 +106,9 @@ This guarantees that if the null hypothesis is true, the probability that $\Lamb
 
 Whenever this likelihood ratio exceeds our threshold ($\Lambda_n \geq 1/\alpha$), we can stop and reject $H_0$ with a guaranteed FPR $\leq \alpha$. By inverting this test, we construct a **Confidence Sequence**. Unlike a standard Confidence Interval (valid only at a fixed $N$), a Confidence Sequence simultaneously covers the true effect $\Delta$ at *all* time steps $n$:
 
-$$P\left(\forall n \geq 1: \Delta \in \text{CS}_n \right) \geq 1 - \alpha$$
+$$
+P\left(\forall n \geq 1: \Delta \in \text{CS}_n \right) \geq 1 - \alpha
+$$
 
 This framework provides the mathematical foundation for modern tech platforms requiring continuous, always-valid experiment monitoring.
 

@@ -2,11 +2,16 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import mermaid from 'astro-mermaid';
 
 export default defineConfig({
   site: 'https://rick12000.github.io',
   base: '/gradient-lectures',
   integrations: [
+    mermaid({
+      theme: 'neutral',
+      autoTheme: true,
+    }),
     starlight({
       title: 'Gradient Lectures',
       logo: {
@@ -18,6 +23,7 @@ export default defineConfig({
         Sidebar: './src/components/Sidebar.astro',
         PageSidebar: './src/components/PageSidebar.astro',
         Header: './src/components/Header.astro',
+        Pagination: './src/components/Pagination.astro',
       },
       customCss: [
         './src/styles/custom.css',
@@ -36,7 +42,6 @@ export default defineConfig({
             {
               label: 'Frequentist Experimentation',
               items: [
-                { label: 'Overview', link: '/tracks/experimentation/frequentist-experimentation/' },
                 { label: 'Foundations of A/B Testing', link: '/tracks/experimentation/frequentist-experimentation/foundations-of-ab-testing/' },
                 { label: 'Power & Sensitivity', link: '/tracks/experimentation/frequentist-experimentation/power-and-sensitivity/' },
                 { label: 'Multiple Testing', link: '/tracks/experimentation/frequentist-experimentation/multiple-testing/' },
@@ -50,7 +55,6 @@ export default defineConfig({
             {
               label: 'Bayesian Experimentation',
               items: [
-                { label: 'Overview', link: '/tracks/experimentation/bayesian-experimentation/' },
                 { label: 'Interpretational Bayesian A/B Testing', link: '/tracks/experimentation/bayesian-experimentation/interpretational-bayesian-experimentation/' },
               ],
             },
@@ -73,8 +77,8 @@ export default defineConfig({
             { label: 'Track Overview', link: '/tracks/causal-inference/' },
             { label: 'Fundamental Assumptions', link: '/tracks/causal-inference/fundamental-assumptions/' },
             { label: 'DAG', link: '/tracks/causal-inference/dag/' },
-            { label: 'Propensity Scores', link: '/tracks/causal-inference/propensity-scores/' },
             { label: 'Matching Methods', link: '/tracks/causal-inference/matching-methods/' },
+            { label: 'Propensity Scores', link: '/tracks/causal-inference/propensity-scores/' },
             { label: 'Inverse Probability Weighting', link: '/tracks/causal-inference/inverse-probability-weighting/' },
             { label: 'Double Machine Learning', link: '/tracks/causal-inference/double-machine-learning/' },
             {

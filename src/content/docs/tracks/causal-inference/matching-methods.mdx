@@ -1,7 +1,7 @@
 ---
 title: Matching Methods
 sidebar:
-  order: 4
+  order: 3
 ---
 import Callout from '../../../../components/Callout.astro';
 
@@ -22,7 +22,9 @@ If we use Euclidean distance, a difference of 1 unit in BMI is treated the same 
 
 The Mahalanobis distance includes the inverse covariance matrix $S^{-1}$:
 
-$$d(i, j) = \sqrt{(X_i - X_j)^\top S^{-1} (X_i - X_j)}$$
+$$
+d(i, j) = \sqrt{(X_i - X_j)^\top S^{-1} (X_i - X_j)}
+$$
 
 By multiplying by $S^{-1}$, Mahalanobis distance "decorrelates" the variables and scales them by their variance. This ensures that the redundancy between Weight and BMI is factored out, providing a truer measure of patient similarity.
 </Callout>
@@ -59,7 +61,9 @@ The standard greedy matching algorithm pairs patients sequentially:
 **Step 3: Estimate ATE**
 Average the pairwise effects over $M$ matched pairs:
 
-$$\widehat{\text{ATE}} = \frac{1}{M} \sum_{m=1}^M \left(Y_{\text{treat},m} - Y_{\text{control},m}\right)$$
+$$
+\widehat{\text{ATE}} = \frac{1}{M} \sum_{m=1}^M \left(Y_{\text{treat},m} - Y_{\text{control},m}\right)
+$$
 
 Here, $\widehat{\text{ATE}} = \frac{1.4 + 2.6}{2} = 2.0$.
 </Callout>
@@ -92,7 +96,9 @@ After matching, we must verify that our new pseudo-population has achieved ident
 
 1. **Standardized Mean Difference (SMD)**: Measures the difference in means for each covariate, scaled by their pooled standard deviation.
 
-   $$\text{SMD}_k = \frac{\bar{X}_k^{\text{treat}} - \bar{X}_k^{\text{control}}}{\sqrt{(s_k^{\text{treat}})^2 + (s_k^{\text{control}})^2}/2}$$
+$$
+\text{SMD}_k = \frac{\bar{X}_k^{\text{treat}} - \bar{X}_k^{\text{control}}}{\sqrt{(s_k^{\text{treat}})^2 + (s_k^{\text{control}})^2}/2}
+$$
 
    A standard threshold is $\text{SMD}_k < 0.1$. Larger differences indicate that the matching failed to eliminate residual confounding.
 2. **Variance Ratio**: Checks if the spread of the covariate is similar in both groups. A ratio near 1.0 is ideal; ratios outside $[0.8, 1.25]$ suggest poor balance in the tails of the distribution.

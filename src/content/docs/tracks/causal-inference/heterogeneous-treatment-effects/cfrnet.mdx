@@ -26,7 +26,9 @@ The goal of the IPM is to measure the distance between the treated and untreated
 
 The overall objective minimizes a weighted sum of the factual prediction loss and the distributional distance:
 
-$$\min_{h,\Phi} \frac{1}{n} \sum_{i=1}^n w_i \cdot L(h(\Phi(x_i), t_i), y_i) + \alpha \cdot \text{IPM}_G(\{\Phi(x_i)\}_{t_i=0}, \{\Phi(x_i)\}_{t_i=1})$$
+$$
+\min_{h,\Phi} \frac{1}{n} \sum_{i=1}^n w_i \cdot L(h(\Phi(x_i), t_i), y_i) + \alpha \cdot \text{IPM}_G(\{\Phi(x_i)\}_{t_i=0}, \{\Phi(x_i)\}_{t_i=1})
+$$
 
 Where:
 - $L$ is the standard prediction loss.
@@ -34,7 +36,9 @@ Where:
 - $\alpha$ is the hyperparameter controlling the strength of the balance regularization.
 - $\text{IPM}_G$ is the Integral Probability Metric over a function family $G$. Formally defined for two distributions $p$ and $q$ over a space $S$ as:
 
-  $$\text{IPM}_G(p, q) = \sup_{g \in G} \left| \int_S g(s)(p(s) - q(s)) ds \right|$$
+$$
+\text{IPM}_G(p, q) = \sup_{g \in G} \left| \int_S g(s)(p(s) - q(s)) ds \right|
+$$
 
 </Callout>
 
@@ -48,7 +52,9 @@ The Wasserstein distance is the Integral Probability Metric when the function fa
 
 For finite empirical samples, this reduces to an optimal transport problem. We want to find a transport matrix $M$ that minimizes the total cost to move representations from the treated group $P_1$ to the control group $P_0$:
 
-$$\text{Wass}(P_1, P_0) = \inf_{M \in \Gamma(P_1, P_0)} \sum_{i,j} M_{i,j} \cdot \| \Phi(x_{1i}) - \Phi(x_{0j}) \|_2$$
+$$
+\text{Wass}(P_1, P_0) = \inf_{M \in \Gamma(P_1, P_0)} \sum_{i,j} M_{i,j} \cdot \| \Phi(x_{1i}) - \Phi(x_{0j}) \|_2
+$$
 
 Where $\Gamma(P_1, P_0)$ is the set of all valid joint distributions (transport plans) whose marginals match the empirical distributions of the treated and control representations.
 
@@ -62,7 +68,9 @@ MMD is the Integral Probability Metric when $G$ is the unit ball in a Reproducin
 
 A major advantage of MMD is that its empirical squared distance can be computed directly without solving an optimization problem:
 
-$$\text{MMD}^2(P_1, P_0) = \frac{1}{n_1^2} \sum_{i=1}^{n_1} \sum_{j=1}^{n_1} k(\Phi(x_{1i}), \Phi(x_{1j})) + \frac{1}{n_0^2} \sum_{i=1}^{n_0} \sum_{j=1}^{n_0} k(\Phi(x_{0i}), \Phi(x_{0j})) - \frac{2}{n_1 n_0} \sum_{i=1}^{n_1} \sum_{j=1}^{n_0} k(\Phi(x_{1i}), \Phi(x_{0j}))$$
+$$
+\text{MMD}^2(P_1, P_0) = \frac{1}{n_1^2} \sum_{i=1}^{n_1} \sum_{j=1}^{n_1} k(\Phi(x_{1i}), \Phi(x_{1j})) + \frac{1}{n_0^2} \sum_{i=1}^{n_0} \sum_{j=1}^{n_0} k(\Phi(x_{0i}), \Phi(x_{0j})) - \frac{2}{n_1 n_0} \sum_{i=1}^{n_1} \sum_{j=1}^{n_0} k(\Phi(x_{1i}), \Phi(x_{0j}))
+$$
 
 Intuitively, this measures the average kernel similarity *within* the treated group plus the similarity *within* the control group, minus the similarity *between* the two groups.
 

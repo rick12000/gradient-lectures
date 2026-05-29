@@ -14,7 +14,9 @@ By analyzing the relationship between the *residual* treatment and the *residual
 
 We formalize this using the Partially Linear Model. We assume the outcome $Y$ is driven by the treatment $T$ plus the impact of the confounders $X$:
 
-$$Y = \theta T + g(X) + \epsilon$$
+$$
+Y = \theta T + g(X) + \epsilon
+$$
 
 - **$\theta$**: The causal effect we want to estimate.
 - **$g(X)$**: A "nuisance function" capturing the complex relationship mapping the confounders $X$ to the outcome $Y$.
@@ -22,7 +24,9 @@ $$Y = \theta T + g(X) + \epsilon$$
 
 Furthermore, treatment assignment itself is affected by $X$. We define a second equation for $T$:
 
-$$T = m(X) + \eta$$
+$$
+T = m(X) + \eta
+$$
 
 - **$m(X)$**: A second nuisance function mapping confounders to treatment assignment. Estimating $m(X)$ is essentially a [propensity modeling](/tracks/causal-inference/propensity-scores/) exercise.
 - **$\eta$**: Random noise in treatment assignment.
@@ -46,15 +50,21 @@ The coefficient $\hat{\theta}$ from this final regression is your Average Treatm
 
 Taking the expectation of the outcome conditional on $X$:
 
-$$\mathbb{E}[Y|X] = \theta \mathbb{E}[T|X] + g(X)$$
+$$
+\mathbb{E}[Y|X] = \theta \mathbb{E}[T|X] + g(X)
+$$
 
 Subtracting this from the original outcome equation:
 
-$$Y - \mathbb{E}[Y|X] = (\theta T + g(X) + \epsilon) - (\theta \mathbb{E}[T|X] + g(X))$$
+$$
+Y - \mathbb{E}[Y|X] = (\theta T + g(X) + \epsilon) - (\theta \mathbb{E}[T|X] + g(X))
+$$
 
 Let $\tilde{Y} = Y - \mathbb{E}[Y|X]$ and $\tilde{T} = T - \mathbb{E}[T|X]$. The complex nuisance function $g(X)$ perfectly cancels out:
 
-$$\tilde{Y} = \theta \tilde{T} + \epsilon$$
+$$
+\tilde{Y} = \theta \tilde{T} + \epsilon
+$$
 
 This leaves a clean linear relationship between the residuals, allowing us to estimate $\theta$ directly via OLS.
 
@@ -79,9 +89,13 @@ To solve this, DML requires **cross-fitting**. We must ensure that the residuals
    - Predict $\hat{Y}$ and $\hat{T}$ for the observations inside fold $k$.
 3. **Residualize:** Compute the out-of-fold residuals for all observations:
 
-   $$\tilde{Y} = Y - \hat{Y}$$
+$$
+\tilde{Y} = Y - \hat{Y}
+$$
 
-   $$\tilde{T} = T - \hat{T}$$
+$$
+\tilde{T} = T - \hat{T}
+$$
 
 4. **Estimate:** Regress $\tilde{Y}$ on $\tilde{T}$ to extract the causal effect $\hat{\theta}$.
 

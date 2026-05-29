@@ -21,7 +21,9 @@ When faced with these breaches, we either transform the values or simulate the n
 
 For heavily right-skewed positive data, a **Log Transformation** compresses the long tail:
 
-$$X_i^* = \log(X_i + 1)$$
+$$
+X_i^* = \log(X_i + 1)
+$$
 
 Where $X_i$ is the original metric value for user $i$. This stabilizes variance driven by extreme values, but fundamentally changes the hypothesis. It shifts the analysis from absolute units to percentage changes (or geometric means).
 

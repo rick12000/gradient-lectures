@@ -21,28 +21,36 @@ A Bayesian approach allows us to factor in extra considerations before we even t
 
 Substituting our specific variables (data $D$ and true average height $\mu$) into Bayes' rule gives us the continuous form for updating the parameter:
 
-$$ P(\mu|D) = \frac{P(D|\mu)P(\mu)}{P(D)} $$
+$$
+P(\mu|D) = \frac{P(D|\mu)P(\mu)}{P(D)}
+$$
 
 Each component of this equation plays a specific role:
 
 <Callout type="info" title="The Likelihood: $P(D|\mu)$">
 The probability of observing the data $D$ if the parameter were exactly $\mu$. Assuming the data is normally distributed with a known variance $\sigma^2$, the likelihood of observing $n$ independent data points $y = \{y_1, y_2, \dots, y_n\}$ is the product of their individual normal probabilities:
 
-$$ P(D|\mu) = \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left( -\frac{1}{2\sigma^2} (y_i - \mu)^2 \right) $$
+$$
+P(D|\mu) = \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left( -\frac{1}{2\sigma^2} (y_i - \mu)^2 \right)
+$$
 
 </Callout>
 
 <Callout type="note" title="The Prior: $P(\mu)$">
 Our subjective assumptions about the parameter before seeing any data. We want to pick a distribution that will merge well with our likelihood. For a normal likelihood, the perfect match is another **Normal distribution**. It has two parameters, a prior mean $\mu_0$ and a prior variance $\sigma_0^2$, which control its shape:
 
-$$ P(\mu) = N(\mu_0, \sigma_0^2) = \frac{1}{\sqrt{2\pi\sigma_0^2}} \exp\left( -\frac{1}{2\sigma_0^2} (\mu - \mu_0)^2 \right) $$
+$$
+P(\mu) = N(\mu_0, \sigma_0^2) = \frac{1}{\sqrt{2\pi\sigma_0^2}} \exp\left( -\frac{1}{2\sigma_0^2} (\mu - \mu_0)^2 \right)
+$$
 
 </Callout>
 
 <Callout type="note" title="The Scaling Constant: $P(D)$">
 The total probability of observing the data across all possible values of $\mu$. This ensures the posterior is a valid probability distribution that integrates to 1. Because $\mu$ is continuous, we use an integral over the likelihood and the prior:
 
-$$ P(D) = \int_{-\infty}^{\infty} P(D|\mu)P(\mu) d\mu $$
+$$
+P(D) = \int_{-\infty}^{\infty} P(D|\mu)P(\mu) d\mu
+$$
 
 Calculating this integral is often complex, which is why we carefully select a prior that makes it tractable.
 </Callout>
@@ -50,7 +58,9 @@ Calculating this integral is often complex, which is why we carefully select a p
 <Callout type="note" title="Precision vs Variance">
 When working with normal distributions in Bayesian statistics, it is often easier to work with **precision** ($\tau$) instead of variance ($\sigma^2$). Precision is simply the inverse of variance:
 
-$$ \tau = \frac{1}{\sigma^2} $$
+$$
+\tau = \frac{1}{\sigma^2}
+$$
 
 A high precision means a low variance (we are very certain). A low precision means a high variance (we are very uncertain). Let's define $\tau_0 = 1/\sigma_0^2$ (Prior precision) and $\tau = 1/\sigma^2$ (Data precision for a single observation).
 </Callout>
@@ -156,11 +166,15 @@ We group the terms by $\mu^2$ and $\mu$. Any term that does not contain $\mu$ (l
 
 Grouping the $\mu^2$ terms:
 
-$$ \mu^2 \left( \frac{n}{\sigma^2} + \frac{1}{\sigma_0^2} \right) $$
+$$
+\mu^2 \left( \frac{n}{\sigma^2} + \frac{1}{\sigma_0^2} \right)
+$$
 
 Grouping the $\mu$ terms:
 
-$$ -2\mu \left( \frac{\sum y_i}{\sigma^2} + \frac{\mu_0}{\sigma_0^2} \right) $$
+$$
+-2\mu \left( \frac{\sum y_i}{\sigma^2} + \frac{\mu_0}{\sigma_0^2} \right)
+$$
 
 So the exponent simplifies to:
 
@@ -182,15 +196,21 @@ By matching the coefficients of $\mu^2$ and $\mu$ from Step 7 with this standard
 
 **Matching the $\mu^2$ coefficient (Precision):**
 
-$$ \frac{1}{\sigma_n^2} = \frac{1}{\sigma_0^2} + \frac{n}{\sigma^2} $$
+$$
+\frac{1}{\sigma_n^2} = \frac{1}{\sigma_0^2} + \frac{n}{\sigma^2}
+$$
 
 **Matching the $\mu$ coefficient (Mean):**
 
-$$ \frac{\mu_n}{\sigma_n^2} = \frac{\mu_0}{\sigma_0^2} + \frac{\sum y_i}{\sigma^2} $$
+$$
+\frac{\mu_n}{\sigma_n^2} = \frac{\mu_0}{\sigma_0^2} + \frac{\sum y_i}{\sigma^2}
+$$
 
 Solving for $\mu_n$:
 
-$$ \mu_n = \sigma_n^2 \left( \frac{\mu_0}{\sigma_0^2} + \frac{\sum y_i}{\sigma^2} \right) $$
+$$
+\mu_n = \sigma_n^2 \left( \frac{\mu_0}{\sigma_0^2} + \frac{\sum y_i}{\sigma^2} \right)
+$$
 
 ---
 
@@ -200,18 +220,24 @@ Using our precision notation ($\tau_0 = 1/\sigma_0^2$ and $\tau = 1/\sigma^2$), 
 
 **Posterior Precision:**
 
-$$ \tau_n = \tau_0 + n\tau $$
+$$
+\tau_n = \tau_0 + n\tau
+$$
 
 **Posterior Mean:**
 Since $\sum y_i = n\bar{y}$, we can write:
 
-$$ \mu_n = \frac{\tau_0 \mu_0 + n\tau \bar{y}}{\tau_n} = \frac{\tau_0 \mu_0 + n\tau \bar{y}}{\tau_0 + n\tau} $$
+$$
+\mu_n = \frac{\tau_0 \mu_0 + n\tau \bar{y}}{\tau_n} = \frac{\tau_0 \mu_0 + n\tau \bar{y}}{\tau_0 + n\tau}
+$$
 
 </Callout>
 
 The posterior can be formalized as (refer to the derivation above for interpretation of mean and standard deviation terms):
 
-$$ P(\mu \mid D) = N(\mu \mid \mu_n, \sigma_n^2) $$
+$$
+P(\mu \mid D) = N(\mu \mid \mu_n, \sigma_n^2)
+$$
 
 Which is a Normal distribution with a parameter update based on the observed data.
 
@@ -225,7 +251,9 @@ The posterior is our final result, and it is a full distribution. If we want poi
 
 The expected value (mean) of our normal posterior is simply its parameter $\mu_n$:
 
-$$ \text{Mean} = \mu_n = \frac{\tau_0 \mu_0 + n\tau \bar{y}}{\tau_0 + n\tau} $$
+$$
+\text{Mean} = \mu_n = \frac{\tau_0 \mu_0 + n\tau \bar{y}}{\tau_0 + n\tau}
+$$
 
 If we want intervals, we can get them directly from the distribution itself. By finding the left and right percentiles that we desire (e.g., the 2.5th and 97.5th percentiles of the normal distribution), we obtain a credible interval. We can also get direct quantile predictions instead of looking for the mean or other landmarks.
 
@@ -255,13 +283,17 @@ Subbing in our actual numbers to find the posterior parameters:
 
 **Posterior Precision:**
 
-$$ \tau_n = 0.25 + 5.0 = 5.25 $$
+$$
+\tau_n = 0.25 + 5.0 = 5.25
+$$
 
 Posterior variance is $\sigma_n^2 = 1 / 5.25 \approx 0.19$ (Standard deviation $\approx 0.44$).
 
 **Posterior Mean:**
 
-$$ \mu_n = \frac{(0.25 \times 0) + (5.0 \times 3.9)}{5.25} = \frac{19.5}{5.25} \approx 3.71 $$
+$$
+\mu_n = \frac{(0.25 \times 0) + (5.0 \times 3.9)}{5.25} = \frac{19.5}{5.25} \approx 3.71
+$$
 
 This results in a new output distribution, our posterior.
 

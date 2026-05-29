@@ -13,14 +13,6 @@ const {
   defaultOpen = false,
 } = Astro.props;
 
-const icons: Record<string, string> = {
-  note: '◆',
-  tip: '✦',
-  info: 'ℹ',
-  example: '▸',
-  warning: '!',
-};
-
 const defaultTitles: Record<string, string> = {
   note: 'Note',
   tip: 'Tip',
@@ -30,23 +22,57 @@ const defaultTitles: Record<string, string> = {
 };
 
 const displayTitle = title ?? defaultTitles[type];
-const icon = icons[type];
 ---
 
 {collapsible ? (
-  <details class={`callout callout--${type}`} open={defaultOpen}>
+  <details class={`callout callout--${type} not-content`} open={defaultOpen}>
     <summary>
-      <span class="callout-icon" aria-hidden="true">{icon}</span>
+      <span class="callout-icon" aria-hidden="true">
+        {type === 'note' && (
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 22 12 12 22 2 12Z" /></svg>
+        )}
+        {type === 'tip' && (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 14.5 9.5 21 12 14.5 14.5 12 21 9.5 14.5 3 12 9.5 9.5Z" /></svg>
+        )}
+        {type === 'info' && (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 11v6M12 8h.01" /></svg>
+        )}
+        {type === 'example' && (
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7Z" /></svg>
+        )}
+        {type === 'warning' && (
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 22 21H2Z" /><rect x="11" y="10" width="2" height="5" rx="0.5" fill="var(--sl-color-bg)" /><circle cx="12" cy="17.5" r="1.1" fill="var(--sl-color-bg)" /></svg>
+        )}
+      </span>
       <span class="callout-title">{displayTitle}</span>
+      <span class="callout-chevron" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+      </span>
     </summary>
     <div class="callout-body">
       <slot />
     </div>
   </details>
 ) : (
-  <div class={`callout callout--${type} callout--static`}>
+  <div class={`callout callout--${type} callout--static not-content`}>
     <div class="callout-header-static">
-      <span class="callout-icon" aria-hidden="true">{icon}</span>
+      <span class="callout-icon" aria-hidden="true">
+        {type === 'note' && (
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 22 12 12 22 2 12Z" /></svg>
+        )}
+        {type === 'tip' && (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 14.5 9.5 21 12 14.5 14.5 12 21 9.5 14.5 3 12 9.5 9.5Z" /></svg>
+        )}
+        {type === 'info' && (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 11v6M12 8h.01" /></svg>
+        )}
+        {type === 'example' && (
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7Z" /></svg>
+        )}
+        {type === 'warning' && (
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 22 21H2Z" /><rect x="11" y="10" width="2" height="5" rx="0.5" fill="var(--sl-color-bg)" /><circle cx="12" cy="17.5" r="1.1" fill="var(--sl-color-bg)" /></svg>
+        )}
+      </span>
       <span class="callout-title">{displayTitle}</span>
     </div>
     <div class="callout-body">

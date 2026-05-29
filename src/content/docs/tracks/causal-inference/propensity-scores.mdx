@@ -1,7 +1,7 @@
 ---
 title: Propensity Scores
 sidebar:
-  order: 3
+  order: 4
 ---
 import Callout from '../../../../components/Callout.astro';
 
@@ -9,32 +9,44 @@ import Callout from '../../../../components/Callout.astro';
 
 The **propensity score** is the probability of receiving treatment given observed covariates (patient characteristics):
 
-$$e(X) = P(A = 1 \mid X)$$
+$$
+e(X) = P(A = 1 \mid X)
+$$
 
 For example, if we are evaluating the effect of antibiotics, an immunosuppressed patient is clinically much more likely to be prescribed antibiotics than a healthy patient. Therefore, their propensity score for receiving the treatment is significantly higher.
 
 Rosenbaum and Rubin (1983) proved that if treatment assignment is [ignorable](/tracks/causal-inference/fundamental-assumptions/) given $X$, then it is also ignorable given the single, scalar propensity score $e(X)$:
 
-$$Y_1, Y_0 \perp A \mid X \quad \Rightarrow \quad Y_1, Y_0 \perp A \mid e(X)$$
+$$
+Y_1, Y_0 \perp A \mid X \quad \Rightarrow \quad Y_1, Y_0 \perp A \mid e(X)
+$$
 
 <Callout type="note" title="Derivation: Ignorability given the Propensity Score" collapsible defaultOpen={false}>
 We want to show that $P(A=1 \mid Y_1, Y_0, e(X)) = P(A=1 \mid e(X))$.
 
 By the law of total probability, conditioning on the full covariates $X$:
 
-$$P(A=1 \mid Y_1, Y_0, e(X)) = \mathbb{E}_X [P(A=1 \mid Y_1, Y_0, X) \mid Y_1, Y_0, e(X)]$$
+$$
+P(A=1 \mid Y_1, Y_0, e(X)) = \mathbb{E}_X [P(A=1 \mid Y_1, Y_0, X) \mid Y_1, Y_0, e(X)]
+$$
 
 By standard ignorability ($Y_1, Y_0 \perp A \mid X$), the treatment $A$ is independent of potential outcomes given $X$:
 
-$$P(A=1 \mid Y_1, Y_0, X) = P(A=1 \mid X)$$
+$$
+P(A=1 \mid Y_1, Y_0, X) = P(A=1 \mid X)
+$$
 
 By definition, $P(A=1 \mid X) = e(X)$. Substituting this back into the expectation:
 
-$$= \mathbb{E}_X [e(X) \mid Y_1, Y_0, e(X)]$$
+$$
+= \mathbb{E}_X [e(X) \mid Y_1, Y_0, e(X)]
+$$
 
 Since we are conditioning on $e(X)$, the expectation of $e(X)$ is simply $e(X)$ itself:
 
-$$= e(X)$$
+$$
+= e(X)
+$$
 
 Since $e(X) = P(A=1 \mid e(X))$, we conclude that $P(A=1 \mid Y_1, Y_0, e(X)) = P(A=1 \mid e(X))$, proving that $Y_1, Y_0 \perp A \mid e(X)$.
 </Callout>
@@ -59,7 +71,9 @@ $e(X)$ is estimated by regressing treatment $A$ on covariates $X$.
 
 Logistic regression is the standard choice:
 
-$$\log\left(\frac{e(X)}{1 - e(X)}\right) = \beta_0 + \beta^\top X$$
+$$
+\log\left(\frac{e(X)}{1 - e(X)}\right) = \beta_0 + \beta^\top X
+$$
 
 Logistic regression yields well-calibrated probabilities natively. Highly flexible machine learning models (like gradient boosted trees) can minimize classification error, but they often "over-segregate" patients, producing extreme scores near 0 or 1. This violates the [positivity](/tracks/causal-inference/fundamental-assumptions/) assumption (we need some uncertainty in who gets treated to make comparisons). If non-linear models are used, their outputs must be explicitly calibrated (e.g., via Platt scaling) to represent true probabilities rather than mere rankings.
 

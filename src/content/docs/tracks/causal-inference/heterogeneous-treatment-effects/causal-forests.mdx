@@ -81,8 +81,12 @@ In the prior explanations, we simplified things by assuming we train a causal fo
 
 In reality, it is common to first train an outcome predicting model $\hat{m}(X)$ and a propensity scoring model $\hat{e}(X)$. We then train the causal forest on the de-residualized data:
 
-$$\tilde{Y} = Y - \hat{m}(X)$$
+$$
+\tilde{Y} = Y - \hat{m}(X)
+$$
 
-$$\tilde{A} = A - \hat{e}(X)$$
+$$
+\tilde{A} = A - \hat{e}(X)
+$$
 
 ---

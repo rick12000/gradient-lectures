@@ -36,18 +36,20 @@ Because users are randomly assigned to both independently, they fall into one of
 At the user level, the data looks like this:
 
 | User | $Y$ (Target Metric) | $A$ | $B$ |
-| ---- | ------------------- | --- | --- |
-| 1    | 12.50               | 0   | 0   |
-| 2    | 0.00                | 1   | 0   |
-| 3    | 45.20               | 0   | 1   |
-| 4    | 9.99                | 1   | 1   |
-| 5    | 0.00                | 1   | 1   |
+| --- | --- | --- | --- |
+| 1 | 12.50 | 0 | 0 |
+| 2 | 0.00 | 1 | 0 |
+| 3 | 45.20 | 0 | 1 |
+| 4 | 9.99 | 1 | 1 |
+| 5 | 0.00 | 1 | 1 |
 
 ### Continuous Metrics
 
 To detect interaction effects on a continuous target metric (e.g., Revenue per User), we use a multiple linear regression approach (Two-Way ANOVA). We fit the following model to our user-level data:
 
-$$Y = \beta_0 + \beta_1 A + \beta_2 B + \beta_3 (A \times B) + \epsilon$$
+$$
+Y = \beta_0 + \beta_1 A + \beta_2 B + \beta_3 (A \times B) + \epsilon
+$$
 
 <Callout type="info" title="Equation Terms">
 
@@ -74,7 +76,9 @@ If the target metric is binary (e.g., Conversion Rate, Click-Through Rate), line
 
 The most direct adaptation is to use Logistic Regression. We use the exact same equation structure as the continuous case, but wrap it in a logit link function:
 
-$$\ln\left(\frac{p}{1-p}\right) = \beta_0 + \beta_1 A + \beta_2 B + \beta_3 (A \times B)$$
+$$
+\ln\left(\frac{p}{1-p}\right) = \beta_0 + \beta_1 A + \beta_2 B + \beta_3 (A \times B)
+$$
 
 We still look at the significance of the $\beta_3$ coefficient using the model's standard z-test or Wald test. If $\beta_3$ is significant, an interaction exists.
 
@@ -93,10 +97,10 @@ Instead of fitting a regression model, we can use a purely categorical approach 
 
 **Table 1: Users in $B_0$**
 
-|           | Not Converted | Converted |
-| --------- | ------------- | --------- |
-| **$A_0$** | Count         | Count     |
-| **$A_1$** | Count         | Count     |
+| | Not Converted | Converted |
+| --- | --- | --- |
+| **$A_0$** | Count | Count |
+| **$A_1$** | Count | Count |
 
 **Table 2: Users in $B_1$**
 
@@ -124,7 +128,9 @@ Suppose we test a new Checkout Button ($A$) and a new Cart Layout ($B$) on 4,000
 
 The Odds Ratio for the new button under the old cart is:
 
-$$OR_{B0} = \frac{150 / 850}{100 / 900} = 1.58$$
+$$
+OR_{B0} = \frac{150 / 850}{100 / 900} = 1.58
+$$
 
 **Step 2: Table for $B_1$ (New Cart)**
 
@@ -135,7 +141,9 @@ $$OR_{B0} = \frac{150 / 850}{100 / 900} = 1.58$$
 
 The Odds Ratio for the new button under the new cart is:
 
-$$OR_{B1} = \frac{50 / 950}{100 / 900} = 0.47$$
+$$
+OR_{B1} = \frac{50 / 950}{100 / 900} = 0.47
+$$
 
 **Step 3 & 4: Significance**
 The new button increases conversions by 50% in the old cart, but *halves* conversions in the new cart. To prove this interaction is statistically significant, we calculate the standard error of the log odds ratios and compute the test statistic.
@@ -159,7 +167,9 @@ Beyond individual experiment pairs, companies often want to measure **systematic
 
 If tests are truly independent, the interaction p-values will be uniformly distributed between 0 and 1. Any deviation from uniformity—specifically, a skew towards 0—proves the presence of systematic interaction effects.
 
-If the historical distribution is skewed toward zero, the platform has a systemic interference problem and must exercise caution when running concurrent tests.
+![Interaction p-value distribution](../../../../../assets/images/cursor-generated-interaction-pvalues.png)
+
+If the historical distribution matches the red skewed curve, the platform has a systemic interference problem and must exercise caution when running concurrent tests.
 
 <Callout type="note" title="Practical Reality of Interactions">
 

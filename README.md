@@ -64,13 +64,25 @@ Here is where everything lives in the project:
   - This file controls the website's title, the left sidebar navigation structure, and plugins (like math rendering). If you add a new note, you must add it to the `sidebar` array in this file for it to show up in the navigation.
 
 ### Helper Script: Formatting Math
-Because these notes were originally written in Obsidian, the math blocks (`$$...$$`) sometimes lack the blank lines required by our web renderer (KaTeX) to display them properly centered.
+Because these notes were originally written in Obsidian, display math blocks need to use **multiline** `$$` delimiters (opening and closing `$$` on their own lines). Single-line `$$...$$` is parsed as inline math and will appear left-aligned.
 
 If you add new notes from Obsidian and the math looks broken or left-aligned, run this helper script in your terminal:
 ```bash
 npm run format-math
 ```
-*This automatically scans all `.mdx` files and fixes the math block spacing for you.*
+*This converts single-line `$$` to multiline display blocks, dedents math inside lists, and collapses extra blank lines (three or more become one).*
+
+### Mermaid diagrams
+
+Notes can include diagrams with fenced `mermaid` code blocks. Rendering is handled by [`astro-mermaid`](https://www.npmjs.com/package/astro-mermaid) (configured in `astro.config.mjs`). Diagrams render client-side as SVG and follow the site light/dark theme automatically.
+
+Example pages: **DAG** and **TARNet** in the Causal Inference track.
+
+If you see raw diagram text instead of a chart, restart the dev server after `npm install` so the Mermaid client bundle loads.
+
+### Spacing in notes
+
+Vertical spacing is controlled by CSS variables in `src/styles/custom.css` (`--gl-space-*`). In the MDX source, use **at most one blank line** between blocks — multiple blank lines create empty paragraphs and uneven gaps. Run `npm run format-math` after pasting content to normalize spacing.
 
 ---
 
