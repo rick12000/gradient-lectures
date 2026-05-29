@@ -922,9 +922,11 @@ html .callout-body table {
 }
 
 .track-cards-preview .track-cards {
-  max-height: 21.5rem;
+  max-height: calc(21.5rem + 8px);
   overflow: hidden;
   margin-bottom: 0;
+  padding-top: 8px;
+  margin-top: -8px;
 }
 
 .track-cards-preview::after {
@@ -1162,8 +1164,9 @@ a.track-overview__note:hover {
 }
 
 .home-logo {
-  max-width: 100%;
-  height: auto;
+  width: 270px !important;
+  max-width: 100% !important;
+  height: auto !important;
   margin-bottom: 1.25rem;
   border: none !important;
   border-radius: 0 !important;
@@ -1304,6 +1307,15 @@ a.track-overview__note:hover {
   color: var(--sl-color-text) !important;
 }
 .right-sidebar-panel h2 {
+  display: none !important;
+}
+
+/* Hide the mobile TOC entirely on narrow viewports. Below 72rem the desktop
+   right-sidebar panel is already hidden (lg:sl-block only fires at ≥72rem).
+   The mobile TOC wrapper (lg:sl-hidden) would normally appear instead, but
+   we want no TOC at all below 72rem — no sticky bar, no toggle, nothing.
+   If the viewport is too narrow the feature simply becomes unavailable. */
+mobile-starlight-toc {
   display: none !important;
 }
 

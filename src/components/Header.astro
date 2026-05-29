@@ -16,7 +16,7 @@ const shouldRenderSearch =
 	<div class="title-wrapper sl-flex">
 		<SiteTitle />
 	</div>
-  <div class="nav-links-middle sl-hidden md:sl-flex">
+  <div class="nav-links-middle sl-hidden nav-links-wide-only">
     <nav class="custom-top-nav">
       <a href={withBase('/learning-tracks/')}>Learning Tracks</a>
       <a href={withBase('/contribute/')}>Contribute</a>
@@ -32,10 +32,20 @@ const shouldRenderSearch =
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    display: flex;
+    display: none;
     justify-content: center;
     align-items: center;
     pointer-events: none; /* Prevents blocking clicks if it overlaps search */
+  }
+
+  /* Only show center nav when the viewport is wide enough that the absolutely-
+     positioned links cannot overlap the logo or the search bar. 64rem gives
+     comfortable clearance between the left (logo + sidebar) and right (search)
+     columns of the 3-column header grid. */
+  @media (min-width: 64rem) {
+    .nav-links-middle {
+      display: flex;
+    }
   }
   .custom-top-nav {
     display: flex;
