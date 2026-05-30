@@ -6,9 +6,7 @@ sidebar:
 
 import Callout from '@components/Callout.astro';
 
-Ever tested positive for a rare disease and immediately assumed the worst?
-
-Bayes' rule provides a mathematical framework for updating our beliefs about a hypothesis when we observe new evidence. It explains why a positive result on a highly accurate test might still mean you are probably healthy.
+Bayes' rule provides a mathematical framework for updating our beliefs about a hypothesis when we observe new evidence. The key insight is that any new result must be interpreted in light of what was already known — the prior probability of the hypothesis being true in the first place.
 
 ## Derivation from First Principles
 
@@ -82,12 +80,12 @@ $$
 
 <Callout type="example" title="Worked Example: Rare Disease Testing" collapsible defaultOpen={false}>
 
-Suppose a new test for a rare disease is developed. We know the following:
-- **Prevalence:** 1% of the population has the disease, or $P(D) = 0.01$.
+Suppose a new test for a rare disease is developed and administered as a mass population screening — that is, applied to everyone regardless of symptoms. We know the following:
+- **Prevalence:** 1% of the general population has the disease, or $P(D) = 0.01$.
 - **Sensitivity:** If you have the disease, the test is positive 99% of the time, or $P(+|D) = 0.99$.
 - **False Positive Rate:** If you do not have the disease, the test is positive 5% of the time, or $P(+|D') = 0.05$.
 
-You take the test and get a positive result. What is the **posterior** probability you actually have the disease, $P(D|+)$?
+A randomly selected person is tested and receives a positive result. What is the **posterior** probability they actually have the disease, $P(D|+)$?
 
 Without Bayes' rule, one might intuitively guess the probability is around 95% or 99%. Let's calculate the exact posterior probability.
 
@@ -115,13 +113,15 @@ $$
 P(D|+) = \frac{0.0099}{0.0594} \approx 0.1667
 $$
 
-Even with a positive result on a highly sensitive test, the probability of actually having the disease is only about **16.7%**.
+In a mass screening context, even a positive result on a highly sensitive test corresponds to a disease probability of only about **16.7%**.
 
 </Callout>
 
 <Callout type="note" title="The Base Rate Fallacy">
 
-The reason for the counterintuitive result in the example above is that the disease is rare, meaning most people won't have it. While the test accurately catches most people who already have the disease, applying it to the general population yields a high absolute number of false positives. These false positives overwhelm the true positives, driving down the final probability. Ignoring the underlying prevalence is known as the base rate fallacy.
+The counterintuitive result arises because the disease is rare across the general population. When a test with a 5% false positive rate is applied to a population where only 1% truly have the disease, there are far more healthy people producing false positives than sick people producing true positives. These false positives overwhelm the true positives, suppressing the posterior probability.
+
+This is a property of mass screening, not of clinical testing in general. In practice, doctors test patients who already have symptoms, raising the prior probability of disease substantially. A higher prior would shift the posterior upward accordingly. Ignoring the underlying prevalence when interpreting a result is known as the **base rate fallacy**.
 
 </Callout>
 
