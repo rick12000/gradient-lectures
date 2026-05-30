@@ -5,7 +5,7 @@ sidebar:
 ---
 import Callout from '@components/Callout.astro';
 
-Ever fit a line to three data points and wondered how much you should actually trust it? Ordinary least squares gives you a single "best" line, but ignores the massive uncertainty of small samples.
+Ordinary least squares produces a single best-fit line, but gives no indication of how uncertain that estimate is. With small samples or noisy data, that uncertainty can be substantial. Bayesian linear regression addresses this directly by treating the regression coefficients as unknown parameters with a probability distribution, and updating that distribution as data arrive.
 
 This note derives **Bayesian linear regression** via its simplest form: a linear regression with **one coefficient** $\beta$ and no intercept:
 
