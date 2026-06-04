@@ -1,9 +1,10 @@
-export type TrackVariant = 'experimentation' | 'bayesian' | 'causal';
+export type TrackVariant = 'experimentation' | 'bayesian' | 'causal' | 'agentic';
 
 export type TrackOverviewId =
   | 'experimentation'
   | 'bayesian-statistics'
-  | 'causal-inference';
+  | 'causal-inference'
+  | 'agentic-coding';
 
 export interface TrackNoteItem {
   title: string;
@@ -233,6 +234,39 @@ export const trackOverviews: Record<TrackOverviewId, TrackOverviewConfig> = {
       },
     ],
   },
+  'agentic-coding': {
+    number: 'Track 04',
+    title: 'Agentic Coding',
+    hours: 2,
+    tag: 'practice',
+    href: '/tracks/agentic-coding/',
+    cardDescription:
+      'Practical patterns, tradeoffs, and workflow archetypes for using AI effectively during software development.',
+    variant: 'agentic',
+    summary:
+      'A practical guide to effectively utilizing AI coding assistants. Covers AI workflow archetypes, prompt instructions, and creating specialized agent skills.',
+    sections: [
+      {
+        notes: [
+          {
+            title: 'AI Workflow Tips',
+            href: '/tracks/agentic-coding/ai-workflow-tips/',
+            description: 'Practical patterns, tradeoffs, and workflow archetypes for using AI.',
+          },
+          {
+            title: 'Prompt Instructions and Skills',
+            href: '/tracks/agentic-coding/prompt-instructions-and-skills/',
+            description: 'How to setup reusable prompt instructions and modular skills.',
+          },
+          {
+            title: 'Worked Example - Metric-Driven Optimization',
+            href: '/tracks/agentic-coding/worked-example-metric-driven-optimization/',
+            description: 'Standardized workflow to propose and evaluate candidate solutions.',
+          },
+        ],
+      },
+    ],
+  },
 };
 
 /** Ordered list of track IDs — controls display order on cards and sidebar. */
@@ -240,4 +274,5 @@ export const TRACK_ORDER: TrackOverviewId[] = [
   'experimentation',
   'bayesian-statistics',
   'causal-inference',
+  'agentic-coding',
 ];

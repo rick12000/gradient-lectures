@@ -1,0 +1,125 @@
+---
+title: Prompt Instructions and Skills
+sidebar:
+  order: 2
+---
+import Callout from '@components/Callout.astro';
+
+## Prompt Instructions
+
+**Prompt instructions** are reusable guidance that apply across a project, team, or repository.
+
+Examples:
+- Coding standards
+- Security constraints
+- Team coding conventions
+
+<Callout type="important" title="Important">
+Keep prompt instructions short and non conflicting.
+</Callout>
+
+<Callout type="example" title="Example" collapsible defaultOpen={false}>
+```markdown
+# Repository Rules:
+
+- Put all parameters and configuration variables that you think would be customizable in the [app_config.py](mdc:src/config/app_config.py) or another configuration module in the config folder, do not hard code them in the module you're working on or place them at the top of the module.
+
+- Any changes to do with stored objects (in appdir or other permanent folder) should go through or use the 'services/storage/' folder modules or add to them. Centralize storage operations and only call them where needed, don't decentralize storage definitions and handling.
+```
+</Callout>
+
+### How to Setup Prompt Instructions
+
+#### Copilot 
+
+1. In the root of your repository, create a file named `.github/copilot-instructions.md` ( create the `.github` directory if it does not already exist).
+2. Add natural language instructions to the file, in Markdown format.
+3. The agent will automatically pick these up at your next prompt. 
+
+You can also create individual instructions files and bind them to a specific agent or a specific directory. To find out more refer to the [official documentation](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions#creating-repository-wide-custom-instructions).
+
+---
+## Skills
+
+**Skills** are modular workflows that teach an AI how to perform a specific task.
+
+A skill can contain:
+- Workflows
+- Examples
+- Tool instructions
+- Pointers to templates 
+- Pointers to scripts
+- Pointers to reference material
+
+<Callout type="important" title="Important">
+Keep skills to below 500 tokens and ensure they don't conflict with each other. 
+</Callout>
+
+### How to Setup Skills
+
+#### Skill Files
+
+Skills are defined in `SKILL.md` files. A `SKILL.md` file consists of:
+- YAML front matter with two fields:
+	- `name`: arbitrary skill identifier
+	- `description`: rules for when to use this skill (for the coding agent)
+- Markdown instructions
+
+<Callout type="info" title="Information">
+The yaml front matter is used by the coding agent to decide whether it should ingest the full markdown instructions into its context.
+</Callout>
+
+<Callout type="example" title="Example" collapsible defaultOpen={false}>
+```markdown
+---
+name: github-actions-failure-debugging
+description: Guide for debugging failing GitHub Actions workflows. Use this when asked to debug failing GitHub Actions workflows.
+---
+
+To debug failing GitHub Actions workflows in a pull request, follow this process, using tools provided from the GitHub MCP Server:
+
+1. Use the `list_workflow_runs` tool to look up recent workflow runs for the pull request and their status
+2. Use the `summarize_job_log_failures` tool to get an AI summary of the logs for failed jobs, to understand what went wrong without filling your context windows with thousands of lines of logs
+3. If you still need more information, use the `get_job_logs` or `get_workflow_run_logs` tool to get the full, detailed failure logs
+4. Try to reproduce the failure yourself in your own environment.
+5. Fix the failing build. If you were able to reproduce the failure yourself, make sure it is fixed before committing your changes.
+```
+</Callout>
+
+#### Skill Placement
+
+Where you place your skill files in your repository depends on which coding agent platform you're using.
+##### Copilot
+
+Create a `.github/skills` folder at the root of the repository. 
+
+Each skill should be placed within this folder. A skill needs to be contained within a dedicated subfolder (even if the only file in it is the skill file). You can create multiple folders to house multiple skills: 
+
+![Pasted image 20260604132529](../../../../assets/images/Pasted%20image%2020260604132529.png)
+
+#### Large Skills
+
+You should keep skill files short, but you may add additional template files or references to the skill folder and reference them in the skill markdown. This allows the coding agent to decide whether it should ingest these in context or not.
+
+```text
+create-api-endpoint/
+├── SKILL.md
+├── references/
+│   └── api-conventions.md
+├── assets/
+│   └── route-template.ts
+└── scripts/
+    └── validate.sh
+```
+
+### Worked Example 
+
+To see how to build a skill in practice and how to call it in your repository, refer to the [Worked Example - Metric-Driven Optimization](/tracks/agentic-coding/worked-example-metric-driven-optimization) note. 
+
+## Recommended Skill Repositories
+
+| Category | Links |
+|----------|-------|
+| Official | [Anthropic Skills](https://github.com/anthropics/skills)<br/>[OpenAI Skills](https://github.com/openai/skills) |
+| Community | [Awesome Agent Skills](https://github.com/heilcheng/awesome-agent-skills)<br/>[Claude Skills Library](https://github.com/alirezarezvani/claude-skills) |
+| Mine | [Rick's Skills](https://github.com/rick12000/rick-skills) |
